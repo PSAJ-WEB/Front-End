@@ -1,0 +1,251 @@
+.container {
+  width: 100%;
+}
+
+/* Header styles */
+.header {
+  margin-left: 40px;
+  width: 100vw;
+  width: 100%;
+  margin-bottom: 1rem;
+  margin-top: 40px;
+  background-color: #fff;
+}
+
+/* Main Content Styles */
+.main-content {
+  padding: 40px 0;
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+
+/* Cart Items Styles */
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  gap: 16px;
+}
+
+.item-select input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.item-image {
+  width: 220px;
+  height: 220px;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-category {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.item-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.item-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.color-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.item-quantity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.item-quantity span {
+  font-size: 14px;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  width: 110px;
+}
+
+.quantity-controls button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  font-size: 18px;
+}
+
+.quantity-controls input {
+  width: 36px;
+  height: 36px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-left: none;
+  border-right: none;
+  font-size: 14px;
+}
+
+.item-price {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.item-remove button {
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+/* Cart Footer Styles */
+.cart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  margin-left: 24px;
+}
+
+.cart-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 8px; /* Jarak antara Select All dan Total Orders */
+}
+
+.select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.total-orders {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.total-orders span:first-child {
+  font-size: 14px;
+  color: #666;
+}
+
+.total-price {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.checkout-button {
+  background-color: #000;
+  color: #fff;
+  padding: 12px 100px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.checkout-button:hover {
+  background-color: #333;
+}
+
+
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .cart-item {
+    flex-direction: column;
+  }
+
+  .item-image {
+    width: 100%;
+    height: 240px;
+  }
+
+  .footer-links {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .cart-footer {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .order-summary {
+    width: 100%;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .checkout-button {
+    width: 100%;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .footer-legal {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+}

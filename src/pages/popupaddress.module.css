@@ -1,0 +1,151 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .popupContainer {
+    background-color: white;
+    width: 660px;
+    max-height: 80vh; /* 80% dari viewport height */
+    overflow-y: auto;
+    padding: 30px;
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+  
+  .popupHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  
+  .popupHeader h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: #000;
+  }
+  
+  .closeButton {
+    margin-left: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+  }
+  .closeIcon {
+    width: 24px;
+    height: 24px;
+}
+
+  .formGroup {
+    margin-bottom: 20px;
+  }
+  
+  .formGroup label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .formGroup input,
+  .formGroup textarea {
+    width: 600px;
+    padding: 12px;
+    border: 1px solid #e5e5e5;
+    font-size: 14px;
+  }
+  
+  .formGroup textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  
+  .checkboxGroup {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  
+  .checkboxGroup input {
+    margin-right: 10px;
+  }
+  
+  .checkboxGroup label {
+    font-size: 14px;
+    color: #333;
+  }
+  .checkboxGroup input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid black; /* Warna border hitam */
+    border-radius: 0; /* Menghilangkan border radius */
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+}
+
+.checkboxGroup input[type="checkbox"]:checked {
+    background-color: black; /* Warna hitam saat dicentang */
+    border: 1px solid black;
+}
+
+.checkboxGroup input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    top: 0px;
+    left: 4px;
+    display: none;
+}
+
+.checkboxGroup input[type="checkbox"]:checked::after {
+    display: block;
+}
+
+  
+  .submitButton {
+    background-color: #000;
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    width: 200px;
+    font-size: 16px;
+    font-weight: 100;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .submitButton:hover {
+    background-color: #333;
+  }
+  
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #000;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: #999;
+  }

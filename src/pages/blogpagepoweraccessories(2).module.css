@@ -1,0 +1,220 @@
+@import url('https://fonts.cdnfonts.com/css/sf-pro-display');
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.heroblog7 {
+  position: relative;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.heroContentblog7 {
+  width: 100%;
+  height: 700px;
+  background-image: url('../img/blog6.png');
+  background-size: cover;
+  background-position: 50% 48%;
+  filter: contrast(1.1);
+}
+
+
+.marquee {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 1);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.marquee span {
+  display: inline-block;
+  padding: 1rem;
+  color: white;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.blogPost {
+  max-width: 90%;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  color: #B6B7BA;
+  font-family: 'SF Pro Display';
+  font-weight: 400;
+}
+
+.blogPost h1 {
+  font-family: 'SF Pro Display';
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: black;
+}
+
+.metadata {
+  color: #B6B7BA;
+  margin-bottom: 1rem;
+}
+
+.blogPost p{
+  width: 1130px;
+  margin-bottom: 10px;
+  margin-left: 3px;
+}
+.section2 {
+  margin-bottom: 2rem;
+}
+
+.section2 h2 {
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: black;
+}
+
+.section2 h3 {
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin: 1.5rem 0 1rem;
+  color: black;
+}
+
+.section2 p {
+
+  width: 1140px;
+  text-align: justify;
+  margin-bottom: 10px;
+  margin-left: 3px;
+}
+
+.section2 ul {
+  list-style-type: none;
+  /* Tetap menghilangkan bullet points default */
+  padding-left: 1.5rem;
+  /* Jarak dari kiri */
+  counter-reset: my-counter;
+  /* Menginisialisasi counter */
+}
+
+.section2 li {
+  margin-left: 20px;
+  margin-bottom: 0.2rem;
+  /* Jarak antar item */
+  position: relative;
+  /* Untuk memposisikan angka */
+}
+
+.section2 li::before {
+  content: counter(my-counter) ". ";
+  /* Menampilkan angka dengan format "1. " */
+  counter-increment: my-counter;
+  /* Menambah counter */
+  position: absolute;
+  /* Memposisikan angka */
+  left: -1.5rem;
+  /* Posisi angka di sebelah kiri teks */
+  font-weight: 400;
+  /* Membuat angka tebal */
+  color: B6B7BA;
+  /* Warna angka */
+}
+
+.prevArticle {
+  border: 1px solid rgba(18, 18, 18, 0.2);
+  width: 187px;
+  height: 44px;
+  padding: 10px 20px;
+}
+
+.nextArticle {
+  border: 1px solid rgba(18, 18, 18, 0.2);
+  width: 187px;
+  height: 44px;
+  padding: 10px 34px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4rem 0;
+  color: black;
+}
+
+.pageNumbers {
+  display: flex;
+  gap: 1rem;
+}
+
+.pageNumbers span {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border: rgba(18, 18, 18, 0.2) 1px solid;
+}
+
+.pageNumbers span.active {
+  background-color: #000;
+  color: white;
+}
+
+.footer {
+  background-color: #000;
+  color: white;
+  padding: 4rem 0;
+}
+
+.footerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.newsletter {
+  text-align: center;
+}
+
+.subscribeForm {
+  display: flex;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 1rem auto;
+}
+
+.subscribeForm input {
+  flex: 1;
+  padding: 0.8rem;
+  border: 1px solid #333;
+  background: transparent;
+  color: white;
+}
+
+.subscribeForm button {
+  padding: 0.8rem 2rem;
+  background-color: white;
+  color: black;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .blogPost h1 {
+    font-size: 2rem;
+  }
+
+  .subscribeForm {
+    flex-direction: column;
+  }
+}

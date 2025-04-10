@@ -1,0 +1,429 @@
+.Container {
+  background-color:white;
+  width: 100%;
+}
+
+/* Header styles */
+.header {
+  margin-left: 40px;
+  width: 100vw;
+  width: 100%;
+  margin-bottom: 1rem;
+  margin-top: 40px;
+  background-color: white;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.tabs {
+    margin-left: 40px;
+    width: 100vw;
+    display: flex;
+    gap: 2rem;
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 2rem;
+}
+
+.tab,
+.activeTab {
+    padding: 1rem 0;
+    text-decoration: none;
+    color: #666;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.tabs {
+    position: relative;
+    z-index: 10;
+}
+
+.activeTab {
+    pointer-events: auto;
+}
+
+
+.activeTab {
+    color: #000;
+    border-bottom: 2px solid #000;
+}
+
+.orderHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding-left: 40px;
+  /* Add left padding to match Address page */
+  padding-right: 40px;
+  /* Keep the existing right padding */
+}
+
+.orderItem {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 30px;
+  width: 100%;
+  align-items: center;
+}
+
+.orderImageContainer {
+  width: 120px;
+  height: 120px;
+  padding: 10px;
+  background-color: #F2F2F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orderImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.orderDetails {
+  flex: 1;
+  padding: 0 20px;
+}
+
+.productName {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: #222;
+}
+
+.colorInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.colorName {
+  font-size: 15px;
+  color: #444;
+}
+
+.quantity {
+  font-size: 15px;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.orderDate {
+  font-size: 14px;
+  color: #888;
+}
+
+.orderPriceSection {
+  min-width: 200px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.orderPriceLabel {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.orderPrice {
+  font-size: 18px;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 15px;
+}
+
+.buyAgainButton {
+  background-color: #111;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+.buyAgainButton:hover {
+  background-color: #333;
+}
+
+
+/* Untuk menyesuaikan dengan layout address */
+:global(#root) {
+  width: 100%;
+  max-width: 100%;
+}
+
+:global(.app-container) {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .orderItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .orderImageContainer {
+    width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+  }
+
+  .orderDetails {
+    padding: 0 0 15px 0;
+  }
+
+  .orderPriceSection {
+    width: 100%;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .profileContainer {
+    padding: 20px 15px;
+  }
+}
+
+.profileContainer {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 20px 40px;
+  font-family: 'Arial', sans-serif;
+  box-sizing: border-box;
+}
+
+.profileTitle {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 30px;
+  width: 100%;
+  padding-bottom: 0;
+}
+
+.tab,
+.activeTab {
+    padding: 1rem 0;
+    text-decoration: none;
+    color: #666;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.tabs {
+    position: relative;
+    z-index: 10;
+}
+
+.activeTab {
+    pointer-events: auto;
+}
+
+
+.activeTab {
+    color: #000;
+    border-bottom: 2px solid #000;
+}
+
+.orderHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding-right: 40px;
+}
+
+.orderItem {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 30px;
+  width: 100%;
+  align-items: center;
+}
+
+
+.orderImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.orderDetails {
+  flex: 1;
+  padding: 0 20px;
+}
+
+.productName {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: #222;
+}
+
+.colorInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.colorName {
+  font-size: 15px;
+  color: #444;
+}
+
+.quantity {
+  font-size: 15px;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.orderDate {
+  font-size: 14px;
+  color: #888;
+}
+
+.orderPriceSection {
+  min-width: 200px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.orderPriceLabel {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.orderPrice {
+  font-size: 18px;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 15px;
+}
+
+.buyAgainButton {
+  background-color: #111;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+.buyAgainButton:hover {
+  background-color: #333;
+}
+
+/* Untuk memastikan konten full layar */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Untuk menyesuaikan dengan layout address */
+:global(#root) {
+  width: 100%;
+  max-width: 100%;
+}
+
+:global(.app-container) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.emptyHistory {
+  text-align: center;
+  padding: 2rem;
+  margin: 2rem 0;
+  color: #666;
+  border-radius: 8px;
+}
+
+.shopNowButton {
+  background-color: #000;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.shopNowButton:hover {
+  background-color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .orderItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .orderImageContainer {
+    width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+  }
+
+  .orderDetails {
+    padding: 0 0 15px 0;
+  }
+
+  .orderPriceSection {
+    width: 100%;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .profileContainer {
+    padding: 20px 15px;
+  }
+}

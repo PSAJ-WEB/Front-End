@@ -1,0 +1,173 @@
+/* register.module.css */
+@import url('https://fonts.cdnfonts.com/css/sf-pro-display');
+
+.pageContainer {
+    display: flex;
+    height: 100vh;
+    background-color: #ffffff;
+}
+
+.imageSection {
+    flex: 1;
+    max-width: 50%;
+}
+
+.sideImage {
+    /* margin-top: 0px; */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.formSection {
+    margin-top: 5px;
+    flex: 1;
+    max-width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin-left: 50px;
+    /* Spacing between image and form */
+}
+
+.formContainer {
+    margin-top: 50px;
+    width: 100%;
+    max-width: 400px;
+    margin-right: 50px;
+    /* Additional spacing on the right */
+}
+
+.title {
+    text-align: center;
+    font-family: 'SF Pro Display';
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #000000;
+}
+
+.welcome {
+    font-family: 'SF Pro Display';
+    font-weight: 350;
+    font-size: 1rem;
+    text-align: center;
+    color: rgba(182, 183, 186, 1);
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    font-weight: 350;
+    font-family: 'SF Pro Display';
+    text-align: center;
+    font-size: 0.9rem;
+    color: rgba(182, 183, 186, 1);
+    margin-bottom: 24px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.inputGroup {
+    position: relative;
+}
+
+.inputGroup input {
+    font-family: 'SF Pro Display';
+    font-weight: 400;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.inputGroup input:focus {
+    border-color: #000000;
+}
+
+.eyeIcon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666666;
+    width: 24px;
+    /* Atur ukuran ikon */
+    height: 24px;
+    cursor: pointer;
+    /* Menjadikan ikon bisa diklik */
+    transition: 0.3s ease;
+}
+
+.eyeSlash {
+    width: 24px;
+    /* Atur ukuran ikon */
+    height: 24px;
+    filter: invert(68%) sepia(3%) saturate(78%) hue-rotate(182deg) brightness(94%) contrast(87%);
+}
+
+.registerButton {
+    font-family: 'SF Pro Display';
+    background-color: #000000;
+    color: #ffffff;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 8px;
+}
+
+.registerButton:hover {
+    background-color: #333333;
+}
+
+.loginText {
+    font-family: 'SF Pro Display';
+    font-weight: 400;
+    text-align: center;
+    margin-top: 16px;
+    color: rgba(182, 183, 186, 1);
+    font-size: 0.9rem;
+}
+
+.loginLink {
+    font-family: 'SF Pro Display';
+    color: #000000;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.loginLink:hover {
+    text-decoration: underline;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    .pageContainer {
+        flex-direction: column;
+    }
+
+    .imageSection {
+        max-width: 100%;
+        height: 300px;
+    }
+
+    .formSection {
+        max-width: 100%;
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    .formContainer {
+        margin-right: 0;
+    }
+}
