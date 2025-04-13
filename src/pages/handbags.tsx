@@ -1,235 +1,251 @@
-import { createSignal, createEffect } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { createSignal, createEffect, onMount } from "solid-js";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
 import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
-import tas1groupred from '../img/1) Litchi Pattern Pillow Handbag/1 LPPH RED (Cover).svg';
-import tas1groupblack from '../img/1) Litchi Pattern Pillow Handbag/2 LPPH BLACK.svg';
-import tas1groupmint from '../img/1) Litchi Pattern Pillow Handbag/3 LPPH MINT.svg';
-import tas1grouppink from '../img/1) Litchi Pattern Pillow Handbag/4 LPPH PINK.svg';
-import tas2groupblackgrey from '../img/2 ) Retro Small Square Handbag/2 RSSH CHARCOAL.svg';
-import tas2groupbrown from '../img/2 ) Retro Small Square Handbag/1 RSSH BROWN (Cover).svg';
-import tas2groupijo from '../img/2 ) Retro Small Square Handbag/3 RSSH MATCHA.svg';
-import tas2groupbeige from '../img/2 ) Retro Small Square Handbag/4 RSSH CREAM.svg';
-import tas3groupa from '../img/3) Autumn Pearl Handbag/1 APH CREAM (Cover).svg';
-import tas3groupb from '../img/3) Autumn Pearl Handbag/2 APH BLACK.svg';
-import tas3groupc from '../img/3) Autumn Pearl Handbag/3 APH GREY.svg';
-import tas3groupd from '../img/3) Autumn Pearl Handbag/4 APH PINK.svg';
-import tas4groupblack from '../img/4) Frosted Bowling Handbag/1 FBH BLACK (Cover).svg';
-import tas4groupbrown from '../img/4) Frosted Bowling Handbag/2 FBH BROWN.svg';
-import tas4groupgrey from '../img/4) Frosted Bowling Handbag/3 FBH GREY.svg';
-import tas4grouporange from '../img/4) Frosted Bowling Handbag/4 FBH  BUTTERSCOTCH.svg';
-import tas5groupblack from '../img/5) Versatile Shoulder Bag/2 VSB BLACK.svg';
-import tas5groupbrown from '../img/5) Versatile Shoulder Bag/1 VSB DESERT (Cover).svg';
-import tas5groupbeige from '../img/5) Versatile Shoulder Bag/3 VSB OAT.svg';
-import tas5grouppink from '../img/5) Versatile Shoulder Bag/4 VSB LEMONADE.svg';
-import tas6groupblack from '../img/6) Rhombus Shoulder Bag/2 RSB BLACK.svg';
-import tas6groupnavy from '../img/6) Rhombus Shoulder Bag/1 RSB BOLD DENIM (Cover).svg';
-import tas6groupdenim from '../img/6) Rhombus Shoulder Bag/3 RSB LIGHT DENIM.svg';
-import tas7groupblack from '../img/7) Diamond Chain Shoulder Bag/1 DCSB BLACK (Cover).svg';
-import tas7groupsalmon from '../img/7) Diamond Chain Shoulder Bag/2 DCSB SALMON.svg';
-import tas7groupseafoam from '../img/7) Diamond Chain Shoulder Bag/3 DCSB SEAFOAM.svg';
-import tas7groupbone from '../img/7) Diamond Chain Shoulder Bag/4 DCSB BONE.svg';
-import tas8grouplightdenim from '../img/8) American Shoulder Bag/1 ASB LIGHT DENIM (Cover).svg';
-import tas8groupashgrey from '../img/8) American Shoulder Bag/2 ASB GREY.svg';
-import tas8groupbrown from '../img/8) American Shoulder Bag/3 ASB BROWN.svg';
-import tas8grouplightgrey from '../img/8) American Shoulder Bag/4 ASB LIGHT GREY.svg';
-import clothes1 from '../img/Theyy Wearr Blouses Catalogue/Line Drawing Floral Pattern Blouse.svg';
-import clothes2 from '../img/Theyy Wearr Blouses Catalogue/Ruffle Collar Design Blouse.svg';
-import glasses from '../img/Hippie  Mod Glasses.svg';
-import belt1 from '../img/Theyy Wearr Belts Catalogue/Black Double O-Ring Belt.svg';
-import belt2 from '../img/Theyy Wearr Belts Catalogue/Almond Belt Leather.svg';
-import lunettesdesoleilm from '../img/Lunettes De Soleil M.svg';
-import metalsunglasses from '../img/Metal Sunglasses.svg';
-import aviatorsunglasses from '../img/Aviator Sunglasses.svg';
-import blackfauxbelt from '../img/Faux Leather Belt with buckle.svg';
-import thinbrownfauxbelt from '../img/Thin Brown Faux Leather Belt.svg'
-import thinbeltsquarebuckle from '../img/Thin Belt with Square Buckle.svg'
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
 import './handbags.css';
 
-const Handbags = () => {
-    const toggleLike = (index) => {
-        const updatedProducts = products().map((product, i) => {
-            if (i === index) {
-                return { ...product, liked: !product.liked };
-            }
-            return product;
-        });
-        setProducts(updatedProducts);
-    };
-    const navigate = useNavigate();
-    const [searchQuery, setSearchQuery] = createSignal("");
-    const [products, setProducts] = createSignal([
-        {
-            name: "Lady Pattern Pillow Handbag",
-            category: "Handbag",
-            price: "285.300 IDR",
-            image: tas1groupred,
-            defaultImage: tas1groupred,
-            colors: [
-                { color: "black", image: tas1groupblack },
-                { color: "red", image: tas1groupred },
-                { color: "mint", image: tas1groupmint },
-                { color: "pink", image: tas1grouppink },
-            ],
-            liked: false
-        },
-        {
-            name: "Retro Small Square Handbag",
-            category: "Handbag",
-            price: "174.000 IDR",
-            image: tas2groupbrown,
-            defaultImage: tas2groupbrown,
-            colors: [
-                { color: "black", image: tas2groupblackgrey },
-                { color: "brown", image: tas2groupbrown },
-                { color: "ijo", image: tas2groupijo },
-                { color: "beige", image: tas2groupbeige },
-            ],
-            liked: false
-        },
-        {
-            name: "Autumn Pearl Handbag",
-            category: "Handbag",
-            price: "250.000 IDR",
-            image: tas3groupa,
-            defaultImage: tas3groupa,
-            colors: [
-                { color: "gradient1", image: tas3groupb },
-                { color: "gradient2", image: tas3groupc },
-                { color: "gradient3", image: tas3groupd },
-                { color: "gradient4", image: tas3groupa },
-            ],
-            liked: false
-        },
-        {
-            name: "Frosted Bowling Handbag",
-            category: "Handbag",
-            price: "⁠192.000 IDR",
-            image: tas4groupblack,
-            defaultImage: tas4groupblack,
-            colors: [
-                { color: "black", image: tas4groupblack },
-                { color: "brown", image: tas4groupbrown },
-                { color: "grey", image: tas4groupgrey },
-                { color: "orange", image: tas4grouporange },
-            ],
-            liked: false
-        },
-        {
-            name: "Versatile Shoulder Bag",
-            category: "Handbag",
-            price: "221.000 IDR",
-            image: tas5groupbrown,
-            defaultImage: tas5groupbrown,
-            colors: [
-                { color: "black", image: tas5groupblack },
-                { color: "brown", image: tas5groupbrown },
-                { color: "pinkmuda", image: tas5grouppink },
-                { color: "beige2", image: tas5groupbeige },
-            ],
-            liked: false
-        },
-        {
-            name: "Rhombus Shoulder Bag",
-            category: "Handbag",
-            price: "134.000 IDR",
-            image: tas6groupnavy,
-            defaultImage: tas6groupnavy,
-            colors: [
-                { color: "blacky", image: tas6groupblack },
-                { color: "navy", image: tas6groupnavy },
-                { color: "denim", image: tas6groupdenim },
-            ],
-            liked: false
-        },
-        {
-            name: "Diamond Chain Shoulder Bag",
-            category: "Handbag",
-            price: "⁠160.000 IDR",
-            image: tas7groupblack,
-            defaultImage: tas7groupblack,
-            colors: [
-                { color: "black", image: tas7groupblack },
-                { color: "pink", image: tas7groupsalmon },
-                { color: "mint", image: tas7groupseafoam },
-                { color: "beige3", image: tas7groupbone },
-            ],
-            liked: false
-        },
-        {
-            name: "American Shoulder Bag",
-            category: "Handbag",
-            price: "256.000 IDR",
-            image: tas8grouplightdenim,
-            defaultImage: tas8grouplightdenim,
-            colors: [
-                { color: "domgrey", image: tas8groupashgrey },
-                { color: "brown2", image: tas8groupbrown },
-                { color: "denim2", image: tas8grouplightdenim },
-                { color: "grey2", image: tas8grouplightgrey },
-            ],
-            liked: false
-        }
-    ]);
+interface ProductColor {
+    color: string;
+    color_name?: string;
+    color_code?: string;
+    image: string;
+}
 
-    // Fungsi untuk menyorot huruf yang cocok
-    const highlightText = (text, query) => {
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: string;
+    default_image: string;
+    current_image: string;
+    colors: ProductColor[];
+    liked: boolean;
+    likes_count: number;
+}
+
+const Handbags = () => {
+    const [searchParams] = useSearchParams();
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+    const userId = searchParams.user_id;
+    const [products, setProducts] = createSignal<Product[]>([]);
+    const [isLoading, setIsLoading] = createSignal(false);
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
+    const [searchQuery, setSearchQuery] = createSignal("");
+    const navigate = useNavigate();
+
+    const formatImageUrl = (imagePath: string) => {
+        if (!imagePath) return '/fallback-image.jpg';
+        return imagePath.includes('http')
+            ? imagePath
+            : `http://127.0.0.1:8080/uploads/products/${imagePath}`;
+    };
+
+    const getColorCode = (colorName) => {
+        const colorMap = {
+          // Basic colors
+          red: '#8A191F',
+          mint: '#A1BEAB',
+          pink: '#E0A091',
+          green: '#00FF00',
+          black: '#000000',
+          white: '#FFFFFF',
+          blue: '#2196F3',
+          orange: '#CC7633',
+          navy: '#1F2A39',
+          cream: '#FFFDD0',
+    
+          // Specific product colors
+          glasses: '#D8CDBD',
+          belt2: '#493635',
+          belt3: '#302E2F',
+          clothes1: '#D2CFC5',
+          clothes2: '#A79686',
+          clothes3: '#C1997D',
+          beige3: '#F5ECE1',
+          grey2: '#B8ABA3',
+          denim2: '#798999',
+          blackfaux: '#2C2430',
+          domgrey: '#413F41',
+          blackgrey: '#212129',
+          brown: '#704324',
+          brown2: '#8C6446',
+          brownlight: '#A88B63',
+          beige2: '#DDD1B2',
+          pinkmuda: '#E4BABB',
+          beige: '#E5D2B2',
+          ijo: '#594D0F',
+          lightgrey: '#CC7633', // Note: Same as orange
+          ashgrey: '#CC7633',  // Note: Same as orange
+          blacky: '#222427',
+          denim: '#7F90A1',
+          grey: 'rgba(100, 89, 87, 1)',
+    
+          // Gradient colors (returning first color as fallback)
+          gradient1: 'linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(221, 176, 104, 1))',
+          gradient2: 'linear-gradient(to bottom, rgba(123, 110, 106, 1), rgba(221, 176, 104, 1))',
+          gradient3: 'linear-gradient(to bottom, rgba(190, 128, 114, 1), rgba(221, 176, 104, 1))',
+          gradient4: 'linear-gradient(to bottom, rgba(233, 217, 197, 1), rgba(221, 176, 104, 1))',
+    
+    
+          // Special glasses gradients (returning first color as fallback)
+          glasses1: 'radial-gradient(circle, hsla(220, 15%, 24%, 1) 30%, hsla(53, 4%, 82%, 1) 100%)',
+          glasses2: 'radial-gradient(circle, #717A71 30%, #CDC6AA 100%)',
+          glasses3: 'radial-gradient(circle, #FFD16E 15%, #2B1F1A 70%)',
+        };
+    
+        return colorMap[colorName.toLowerCase()] || '#CCCCCC';
+      };
+    const fetchProducts = async () => {
+        try {
+            setIsLoading(true);
+            const activeUserId = currentUserId() || userId;
+
+            const [productsRes, colorsRes, likesRes] = await Promise.all([
+                fetch('http://127.0.0.1:8080/api/products'),
+                fetch('http://127.0.0.1:8080/api/product-colors'),
+                activeUserId
+                    ? fetch(`http://127.0.0.1:8080/user/${activeUserId}/likes`)
+                    : Promise.resolve(null)
+            ]);
+
+            if (!productsRes.ok || !colorsRes.ok) {
+                throw new Error('Failed to fetch products or colors');
+            }
+
+            const productsData = await productsRes.json();
+            const colorsData = await colorsRes.json();
+            const likedProducts = likesRes ? await likesRes.json() : [];
+
+            const formattedProducts = productsData
+                .filter(product => product.category === 'Bags') // Only get Bags category
+                .map(product => {
+                    const productColors = colorsData.filter(color => color.product_id === product.id);
+                    const isLiked = likedProducts.some(liked => liked.id === product.id);
+
+                    return {
+                        id: product.id,
+                        name: product.name,
+                        category: product.category,
+                        price: product.price,
+                        default_image: formatImageUrl(product.default_image),
+                        current_image: formatImageUrl(product.default_image),
+                        colors: productColors.length > 0
+                            ? productColors.map(color => ({
+                                color: color.color_name || color.color,
+                                color_code: getColorCode(color.color_name || color.color),
+                                image: formatImageUrl(color.image)
+                            }))
+                            : [{
+                                color: 'default',
+                                color_code: '#CCCCCC',
+                                image: formatImageUrl(product.default_image)
+                            }],
+                        liked: isLiked,
+                        likes_count: product.likes_count || 0
+                    };
+                });
+
+            setProducts(formattedProducts);
+        } catch (err) {
+            console.error('Error fetching products:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const toggleLike = async (productId: number) => {
+        const activeUserId = currentUserId() || userId;
+        if (!activeUserId) {
+            // Handle authentication requirement
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const response = await fetch(`http://127.0.0.1:8080/api/products/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: activeUserId,
+                    product_id: productId
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle like');
+            }
+
+            const data = await response.json();
+            setProducts(prevProducts =>
+                prevProducts.map(product =>
+                    product.id === productId
+                        ? {
+                            ...product,
+                            liked: data.is_liked,
+                            likes_count: data.likes_count,
+                        }
+                        : product
+                )
+            );
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const setMainImage = (productId: number, image: string | null) => {
+        setProducts(prevProducts =>
+            prevProducts.map(product =>
+                product.id === productId
+                    ? {
+                        ...product,
+                        current_image: image || product.default_image
+                    }
+                    : product
+            )
+        );
+    };
+
+    const highlightText = (text: string, query: string) => {
         if (!query) return text;
         const regex = new RegExp(`(${query})`, "gi");
         return text.replace(regex, "<span class='highlight'>$1</span>");
     };
 
-    createEffect(() => {
-        const query = searchQuery().toLowerCase();
-        if (query) {
-            const matchedProduct = products().find(product =>
-                product.name.toLowerCase().includes(query)
-            );
-            if (matchedProduct) {
-                // Gunakan setTimeout untuk memastikan DOM sudah di-render
-                setTimeout(() => {
-                    const productElement = document.getElementById(matchedProduct.name);
-                    if (productElement) {
-                        // Scroll ke produk dengan animasi smooth
-                        productElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+        } else {
+            navigate(path);
+        }
+    };
 
-                        // Tambahkan class highlight sementara
-                        productElement.classList.add("highlight-product");
-                        setTimeout(() => {
-                            productElement.classList.remove("highlight-product");
-                        }, 1000); // Hapus highlight setelah 1 detik
-                    }
-                }, 0);
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToAccount = () => navigateWithUserId("/account");
+
+    onMount(async () => {
+        const activeUserId = currentUserId() || userId || null;
+        if (activeUserId) {
+            setCurrentUserId(activeUserId);
+            const userResponse = await fetch(`http://127.0.0.1:8080/user/${activeUserId}`);
+            if (userResponse.ok) {
+                const userData = await userResponse.json();
+                setProfileImage(userData.img ? `http://127.0.0.1:8080/uploads/${userData.img}` : null);
             }
         }
+        await fetchProducts();
     });
-
-    const filteredProducts = () => {
-        const query = searchQuery().toLowerCase();
-        if (!query) return products();
-        return products().filter(product =>
-            product.name.toLowerCase().includes(query)
-        );
-    };
-
-    const setMainImage = (index, image) => {
-        const updatedProducts = products().map((product, i) => {
-            if (i === index) {
-                return { ...product, image };
-            }
-            return product;
-        });
-        setProducts(updatedProducts);
-    };
-
-    const goToCart = () => navigate("/cart");
-    const goToAccount = () => navigate("/account");
 
     return (
         <div class="landing-page">
@@ -240,10 +256,10 @@ const Handbags = () => {
                 </div>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products" class="active">Products</a></li>
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/blogpage">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} class="active">Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
@@ -251,7 +267,16 @@ const Handbags = () => {
                         <img src={cartIcon} alt="Cart" />
                     </button>
                     <button class="dash-account-btn" onClick={goToAccount}>
-                        <img src={accountIcon} alt="Account" />
+                        <img
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover'
+                            }}
+                        />
                     </button>
                 </div>
             </header>
@@ -273,7 +298,7 @@ const Handbags = () => {
                 </div>
             </section>
 
-            {/* Fresh Drops Section */}
+            {/* Products Section */}
             <section class="product">
                 <div class="section-header">
                     <h2>Bags</h2>
@@ -290,26 +315,43 @@ const Handbags = () => {
                 </div>
 
                 <div class="products-grid">
-                    {products().map((product, index) => (
-                        <div class="pro-card" key={product.name} id={product.name}>
+                    {products().map((product) => (
+                        <div class="pro-card" key={product.id} id={`product-${product.id}`}>
                             <div class="product-imagee">
-                                <img src={product.image} alt={product.name} class="pro-image" />
+                                <img
+                                    src={product.current_image}
+                                    alt={product.name}
+                                    class="pro-image"
+                                    onError={(e) => {
+                                        e.currentTarget.src = '/fallback-image.jpg';
+                                        e.currentTarget.onerror = null;
+                                    }}
+                                />
                             </div>
                             <p class="section-products">{product.category}</p>
-                            <span class="heart-icon" onClick={() => toggleLike(index)}>
+                            <span
+                                class={`heart-icon ${isLoading() ? 'loading' : ''}`}
+                                onClick={() => toggleLike(product.id)}
+                            >
                                 <img src={product.liked ? heartfull : heart} alt="Like" />
+                                {product.likes_count > 0 && (
+                                    <span class="like-count">{product.likes_count}</span>
+                                )}
                             </span>
                             <h3 class="name-product">
                                 <span innerHTML={highlightText(product.name, searchQuery())}></span>
                             </h3>
-                            <p class="price">{product.price}</p>
-                            <div class="color-optionss" onMouseLeave={() => setMainImage(index, product.defaultImage)}>
-                                {product.colors.map((color, colorIndex) => (
+                            <p class="price">{parseInt(product.price).toLocaleString('id-ID')} IDR</p>
+                            <div class="color-optionss" onMouseLeave={() => setMainImage(product.id, null)}>
+                                {product.colors.map((color) => (
                                     <span
-                                        class={`color ${color.color}`}
-                                        onMouseOver={() => setMainImage(index, color.image)}
-                                        key={colorIndex}
-                                    ></span>
+                                        class="color"
+                                        style={{
+                                            background: color.color_code || getColorCode(color.color),
+                                        }}
+                                        onMouseEnter={() => setMainImage(product.id, color.image)}
+                                        key={color.color}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -319,7 +361,7 @@ const Handbags = () => {
 
             <img src={befooter} alt="Banner" class="full-width-image" />
 
-            {/* Footer */}
+            {/* Footer (same as before) */}
             <footer>
                 <div class="footer-top">
                     <div class="store-image">
@@ -381,6 +423,7 @@ const Handbags = () => {
                         <span>English</span>
                     </div>
                 </div>
+
             </footer>
         </div>
     );

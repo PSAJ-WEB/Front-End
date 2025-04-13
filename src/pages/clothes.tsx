@@ -1,120 +1,251 @@
-import { createSignal, createEffect } from "solid-js";
-import { useNavigate } from "@solidjs/router";
-import { useLocation } from "@solidjs/router";
+import { createSignal, createEffect, onMount } from "solid-js";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
 import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
-import clothes1 from '../img/Theyy Wearr Blouses Catalogue/Line Drawing Floral Pattern Blouse.svg';
-import clothes2 from '../img/Theyy Wearr Blouses Catalogue/Ruffle Collar Design Blouse.svg';
-import clothes3 from '../img/Theyy Wearr Blouses Catalogue/Blouse With Gold Buttons.svg';
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
 import './clothes.css';
 
+interface ProductColor {
+    color: string;
+    color_name?: string;
+    color_code?: string;
+    image: string;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: string;
+    default_image: string;
+    current_image: string;
+    colors: ProductColor[];
+    liked: boolean;
+    likes_count: number;
+}
+
 const Clothes = () => {
-    const toggleLike = (index) => {
-        const updatedProducts = products().map((product, i) => {
-            if (i === index) {
-                return { ...product, liked: !product.liked };
-            }
-            return product;
-        });
-        setProducts(updatedProducts);
+    const [searchParams] = useSearchParams();
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+    const userId = searchParams.user_id;
+    const [products, setProducts] = createSignal<Product[]>([]);
+    const [isLoading, setIsLoading] = createSignal(false);
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
+    const [searchQuery, setSearchQuery] = createSignal("");
+    const navigate = useNavigate();
+
+    const formatImageUrl = (imagePath: string) => {
+        if (!imagePath) return '/fallback-image.jpg';
+        return imagePath.includes('http')
+            ? imagePath
+            : `http://127.0.0.1:8080/uploads/products/${imagePath}`;
     };
 
-    const navigate = useNavigate();
-    const [searchQuery, setSearchQuery] = createSignal("");
-    const [products, setProducts] = createSignal([
-        {
-            name: "Drawing Floral Pattern Blouse",
-            category: "Clothes",
-            price: "300.000 IDR",
-            image: clothes1,
-            defaultImage: clothes1,
-            colors: [
-                { color: "clothes1", image: clothes1 },
-            ],
-            liked: false
-        },
-        {
-            name: "Ruffle Collar Design Blouse",
-            category: "Clothes",
-            price: "220.000 IDR",
-            image: clothes2,
-            defaultImage: clothes2,
-            colors: [
-                { color: "clothes2", image: clothes2 },
-            ],
-            liked: false
-        },
-        {
-            name: "Gold Buttons Blouse",
-            category: "Clothes",
-            price: "153.000 IDR",
-            image: clothes3,
-            defaultImage: clothes3,
-            colors: [
-                { color: "clothes3", image: clothes3 },
-            ],
-            liked: false
-        }
-    ]);
+    const fetchProducts = async () => {
+        try {
+            setIsLoading(true);
+            const activeUserId = currentUserId() || userId;
 
-    // Fungsi untuk menyorot huruf yang cocok
-    const highlightText = (text, query) => {
+            const [productsRes, colorsRes, likesRes] = await Promise.all([
+                fetch('http://127.0.0.1:8080/api/products'),
+                fetch('http://127.0.0.1:8080/api/product-colors'),
+                activeUserId
+                    ? fetch(`http://127.0.0.1:8080/user/${activeUserId}/likes`)
+                    : Promise.resolve(null)
+            ]);
+
+            if (!productsRes.ok || !colorsRes.ok) {
+                throw new Error('Failed to fetch products or colors');
+            }
+
+            const productsData = await productsRes.json();
+            const colorsData = await colorsRes.json();
+            const likedProducts = likesRes ? await likesRes.json() : [];
+
+            const formattedProducts = productsData
+                .filter(product => product.category === 'Clothes') // Only get Clothes category
+                .map(product => {
+                    const productColors = colorsData.filter(color => color.product_id === product.id);
+                    const isLiked = likedProducts.some(liked => liked.id === product.id);
+
+                    return {
+                        id: product.id,
+                        name: product.name,
+                        category: product.category,
+                        price: product.price,
+                        default_image: formatImageUrl(product.default_image),
+                        current_image: formatImageUrl(product.default_image),
+                        colors: productColors.length > 0
+                            ? productColors.map(color => ({
+                                color: color.color_name || color.color,
+                                color_code: getColorCode(color.color_name || color.color),
+                                image: formatImageUrl(color.image)
+                            }))
+                            : [{
+                                color: 'default',
+                                color_code: '#CCCCCC',
+                                image: formatImageUrl(product.default_image)
+                            }],
+                        liked: isLiked,
+                        likes_count: product.likes_count || 0
+                    };
+                });
+
+            setProducts(formattedProducts);
+        } catch (err) {
+            console.error('Error fetching products:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const toggleLike = async (productId: number) => {
+        const activeUserId = currentUserId() || userId;
+        if (!activeUserId) {
+            // Handle authentication requirement
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const response = await fetch(`http://127.0.0.1:8080/api/products/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: activeUserId,
+                    product_id: productId
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle like');
+            }
+
+            const data = await response.json();
+            setProducts(prevProducts =>
+                prevProducts.map(product =>
+                    product.id === productId
+                        ? {
+                            ...product,
+                            liked: data.is_liked,
+                            likes_count: data.likes_count,
+                        }
+                        : product
+                )
+            );
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const setMainImage = (productId: number, image: string | null) => {
+        setProducts(prevProducts =>
+            prevProducts.map(product =>
+                product.id === productId
+                    ? {
+                        ...product,
+                        current_image: image || product.default_image
+                    }
+                    : product
+            )
+        );
+    };
+
+    const highlightText = (text: string, query: string) => {
         if (!query) return text;
         const regex = new RegExp(`(${query})`, "gi");
         return text.replace(regex, "<span class='highlight'>$1</span>");
     };
 
-    createEffect(() => {
-        const query = searchQuery().toLowerCase();
-        if (query) {
-            const matchedProduct = products().find(product =>
-                product.name.toLowerCase().includes(query)
-            );
-            if (matchedProduct) {
-                // Gunakan setTimeout untuk memastikan DOM sudah di-render
-                setTimeout(() => {
-                    const productElement = document.getElementById(matchedProduct.name);
-                    if (productElement) {
-                        // Scroll ke produk dengan animasi smooth
-                        productElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+        } else {
+            navigate(path);
+        }
+    };
 
-                        // Tambahkan class highlight sementara
-                        productElement.classList.add("highlight-product");
-                        setTimeout(() => {
-                            productElement.classList.remove("highlight-product");
-                        }, 1000); // Hapus highlight setelah 1 detik
-                    }
-                }, 0);
+    const getColorCode = (colorName) => {
+        const colorMap = {
+          // Basic colors
+          red: '#8A191F',
+          mint: '#A1BEAB',
+          pink: '#E0A091',
+          green: '#00FF00',
+          black: '#000000',
+          white: '#FFFFFF',
+          blue: '#2196F3',
+          orange: '#CC7633',
+          navy: '#1F2A39',
+          cream: '#FFFDD0',
+    
+          // Specific product colors
+          glasses: '#D8CDBD',
+          belt2: '#493635',
+          belt3: '#302E2F',
+          clothes1: '#D2CFC5',
+          clothes2: '#A79686',
+          clothes3: '#C1997D',
+          beige3: '#F5ECE1',
+          grey2: '#B8ABA3',
+          denim2: '#798999',
+          blackfaux: '#2C2430',
+          domgrey: '#413F41',
+          blackgrey: '#212129',
+          brown: '#704324',
+          brown2: '#8C6446',
+          brownlight: '#A88B63',
+          beige2: '#DDD1B2',
+          pinkmuda: '#E4BABB',
+          beige: '#E5D2B2',
+          ijo: '#594D0F',
+          lightgrey: '#CC7633', // Note: Same as orange
+          ashgrey: '#CC7633',  // Note: Same as orange
+          blacky: '#222427',
+          denim: '#7F90A1',
+          grey: 'rgba(100, 89, 87, 1)',
+    
+          // Gradient colors (returning first color as fallback)
+          gradient1: 'linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(221, 176, 104, 1))',
+          gradient2: 'linear-gradient(to bottom, rgba(123, 110, 106, 1), rgba(221, 176, 104, 1))',
+          gradient3: 'linear-gradient(to bottom, rgba(190, 128, 114, 1), rgba(221, 176, 104, 1))',
+          gradient4: 'linear-gradient(to bottom, rgba(233, 217, 197, 1), rgba(221, 176, 104, 1))',
+    
+    
+          // Special glasses gradients (returning first color as fallback)
+          glasses1: 'radial-gradient(circle, hsla(220, 15%, 24%, 1) 30%, hsla(53, 4%, 82%, 1) 100%)',
+          glasses2: 'radial-gradient(circle, #717A71 30%, #CDC6AA 100%)',
+          glasses3: 'radial-gradient(circle, #FFD16E 15%, #2B1F1A 70%)',
+        };
+    
+        return colorMap[colorName.toLowerCase()] || '#CCCCCC';
+      };
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToAccount = () => navigateWithUserId("/account");
+
+    onMount(async () => {
+        const activeUserId = currentUserId() || userId || null;
+        if (activeUserId) {
+            setCurrentUserId(activeUserId);
+            const userResponse = await fetch(`http://127.0.0.1:8080/user/${activeUserId}`);
+            if (userResponse.ok) {
+                const userData = await userResponse.json();
+                setProfileImage(userData.img ? `http://127.0.0.1:8080/uploads/${userData.img}` : null);
             }
         }
+        await fetchProducts();
     });
-
-    const filteredProducts = () => {
-        const query = searchQuery().toLowerCase();
-        if (!query) return products();
-        return products().filter(product =>
-            product.name.toLowerCase().includes(query)
-        );
-    };
-
-    const setMainImage = (index, image) => {
-        const updatedProducts = products().map((product, i) => {
-            if (i === index) {
-                return { ...product, image };
-            }
-            return product;
-        });
-        setProducts(updatedProducts);
-    };
-
-    const goToCart = () => navigate("/cart");
-    const goToAccount = () => navigate("/account");
 
     return (
         <div class="landing-page">
@@ -125,10 +256,10 @@ const Clothes = () => {
                 </div>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products" class="active">Products</a></li>
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/blogpage">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} class="active">Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
@@ -136,7 +267,16 @@ const Clothes = () => {
                         <img src={cartIcon} alt="Cart" />
                     </button>
                     <button class="dash-account-btn" onClick={goToAccount}>
-                        <img src={accountIcon} alt="Account" />
+                        <img
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover'
+                            }}
+                        />
                     </button>
                 </div>
             </header>
@@ -146,7 +286,7 @@ const Clothes = () => {
                 <div class="hero-content-product">
                     <div class="overlay-lines"></div>
                     <h1>Discover Your Signature Style</h1>
-                    <p>Find the perfect bags and outfits that complement your personality.</p>
+                    <p>Find the perfect outfits that complement your personality.</p>
                     <button class="shpnow">Shop Now</button>
                 </div>
                 <div class="productpage">
@@ -158,7 +298,7 @@ const Clothes = () => {
                 </div>
             </section>
 
-            {/* Fresh Drops Section */}
+            {/* Products Section */}
             <section class="product">
                 <div class="section-header">
                     <h2>Clothes</h2>
@@ -174,27 +314,44 @@ const Clothes = () => {
                     </div>
                 </div>
 
-                <div class="products-grid3">
-                    {filteredProducts().map((product, index) => (
-                        <div class="pro-card" key={product.name} id={product.name}>
+                <div class="products-grid">
+                    {products().map((product) => (
+                        <div class="pro-card" key={product.id} id={`product-${product.id}`}>
                             <div class="product-imagee">
-                                <img src={product.image} alt={product.name} class="pro-image" />
+                                <img
+                                    src={product.current_image}
+                                    alt={product.name}
+                                    class="pro-image"
+                                    onError={(e) => {
+                                        e.currentTarget.src = '/fallback-image.jpg';
+                                        e.currentTarget.onerror = null;
+                                    }}
+                                />
                             </div>
                             <p class="section-products">{product.category}</p>
-                            <span class="heart-icon" onClick={() => toggleLike(index)}>
+                            <span
+                                class={`heart-icon ${isLoading() ? 'loading' : ''}`}
+                                onClick={() => toggleLike(product.id)}
+                            >
                                 <img src={product.liked ? heartfull : heart} alt="Like" />
+                                {product.likes_count > 0 && (
+                                    <span class="like-count">{product.likes_count}</span>
+                                )}
                             </span>
                             <h3 class="name-product">
                                 <span innerHTML={highlightText(product.name, searchQuery())}></span>
                             </h3>
-                            <p class="price">{product.price}</p>
-                            <div class="color-optionss" onMouseLeave={() => setMainImage(index, product.defaultImage)}>
-                                {product.colors.map((color, colorIndex) => (
+                            <p class="price">{parseInt(product.price).toLocaleString('id-ID')} IDR</p>
+                            <div class="color-optionss" onMouseLeave={() => setMainImage(product.id, null)}>
+                                {product.colors.map((color) => (
                                     <span
-                                        class={`color ${color.color}`}
-                                        onMouseOver={() => setMainImage(index, color.image)}
-                                        key={colorIndex}
-                                    ></span>
+                                        class="color"
+                                        style={{
+                                            background: color.color_code || getColorCode(color.color),
+                                        }}
+                                        onMouseEnter={() => setMainImage(product.id, color.image)}
+                                        key={color.color}
+                                    />
                                 ))}
                             </div>
                         </div>

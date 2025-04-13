@@ -1,4 +1,4 @@
-import { createSignal, onMount, createEffect, onCleanup } from "solid-js";
+import { createSignal, onMount, createEffect, onCleanup, Show } from "solid-js";
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import profile from '../img/UserCircle (2).svg';
@@ -42,15 +42,14 @@ const ProductPage = () => {
   const [error, setError] = createSignal<string | null>(null);
   const [products, setProducts] = createSignal<Product[]>([]);
   const [loading, setLoading] = createSignal(true);
-  const [searchQuery, setSearchQuery] = createSignal("");
   // Frontend code to fetch products
-  const fetchProducts = async () => {
+  const fetchProducts = async (search = "") => {
     try {
       setLoading(true);
       setError(null);
 
       const [productsRes, colorsRes, likesRes] = await Promise.all([
-        fetch('http://127.0.0.1:8080/api/products'),
+        fetch(`http://127.0.0.1:8080/api/products${search ? `?search=${encodeURIComponent(search)}` : ''}`),
         fetch('http://127.0.0.1:8080/api/product-colors'),
         userId ? fetch(`http://127.0.0.1:8080/user/${userId}/likes`) : Promise.resolve(null)
       ]);
@@ -104,6 +103,21 @@ const ProductPage = () => {
     }
   };
 
+  createEffect(() => {
+    const id = matchedProductId();
+    if (id) {
+      setTimeout(() => {
+        const element = document.getElementById(`product-${id}`);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+          });
+        }
+      }, 100);
+    }
+  });
+
   onMount(async () => {
     fetchProducts();
     if (userId) {
@@ -113,6 +127,11 @@ const ProductPage = () => {
 
       // Dapatkan produk yang sudah dilike oleh user
       try {
+        const countRes = await fetch(`http://127.0.0.1:8080/user/${userId}/likes/count`);
+        if (countRes.ok) {
+          const countData = await countRes.json();
+          setFavoriteCount(countData.count || 0);
+        }
         const response = await fetch(
           `http://127.0.0.1:8080/user/${userId}/likes`
         );
@@ -130,6 +149,7 @@ const ProductPage = () => {
       }
     }
   });
+
 
   const setMainImage = (productId: number, image: string | null) => {
     setProducts(prevProducts =>
@@ -282,12 +302,16 @@ const ProductPage = () => {
     }
   });
 
+  onCleanup(() => {
+    const timeout = searchTimeout();
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  });
 
   const goToCart = () => navigateWithUserId("/cart");
-  const goToFavoritePage = () => {
-    setClicked(true);
-    navigate("/favorite");
-  }; const goToAccount = () => navigateWithUserId("/account");
+  const goToFavoritePage = () => navigateWithUserId("/favorite");
+  const goToAccount = () => navigateWithUserId("/account");
   const goToDashboard = () => navigateWithUserId("/dashboard");
   const goToProducts = () => navigateWithUserId("/products");
   const goToAboutUs = () => navigateWithUserId("/about-us");
@@ -295,14 +319,54 @@ const ProductPage = () => {
 
   // Di bagian atas komponen
   const [isLoading, setIsLoading] = createSignal(false);
+  const [favoriteCount, setFavoriteCount] = createSignal(0);
+  const [searchQuery, setSearchQuery] = createSignal("");
+  const [searchTimeout, setSearchTimeout] = createSignal<number | null>(null);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+
+    // Clear previous timeout
+    const timeout = searchTimeout();
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+
+    // Set new timeout
+    const newTimeout = window.setTimeout(() => {
+      fetchProducts(query).then(() => {
+        // Setelah fetch selesai, cari produk yang cocok
+        const matched = products().find(p =>
+          p.name.toLowerCase().includes(query.toLowerCase())
+        );
+        setMatchedProductId(matched?.id || null);
+
+        // Scroll ke produk yang cocok jika ada
+        if (matched) {
+          setTimeout(() => {
+            const element = document.getElementById(`product-${matched.id}`);
+            if (element) {
+              element.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest"
+              });
+            }
+          }, 100);
+        }
+      });
+    }, 300);
+
+    setSearchTimeout(newTimeout);
+  };
+
 
   const toggleLike = async (productId: number, index: number, e: MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
 
     if (!userId) {
-        navigate("/account");
-        return;
+      navigate("/account");
+      return;
     }
 
     if (isLoading()) return;
@@ -310,53 +374,54 @@ const ProductPage = () => {
     setIsLoading(true);
 
     try {
-        // Convert userId to number
-        const userIdNum = parseInt(userId);
-        if (isNaN(userIdNum)) {
-            throw new Error("Invalid user ID");
+      // Convert userId to number
+      const userIdNum = parseInt(userId);
+      if (isNaN(userIdNum)) {
+        throw new Error("Invalid user ID");
+      }
+
+      const response = await fetch("http://127.0.0.1:8080/api/products/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: userIdNum, // Mengirim sebagai number
+          product_id: productId
+        })
+      });
+
+      if (!response.ok) {
+        // Coba parse error response
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
 
-        const response = await fetch("http://127.0.0.1:8080/api/products/like", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                user_id: userIdNum, // Mengirim sebagai number
-                product_id: productId
-            })
-        });
+      const data: LikeResponse = await response.json();
 
-        if (!response.ok) {
-            // Coba parse error response
-            let errorData;
-            try {
-                errorData = await response.json();
-            } catch (e) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-        }
-
-        const data: LikeResponse = await response.json();
-        
-        setProducts(prevProducts => 
-            prevProducts.map((product, i) => 
-                i === index ? {
-                    ...product,
-                    liked: data.is_liked,
-                    likes_count: data.likes_count
-                } : product
-            )
-        );
+      setProducts(prevProducts =>
+        prevProducts.map((product, i) =>
+          i === index ? {
+            ...product,
+            liked: data.is_liked,
+            likes_count: data.likes_count
+          } : product
+        )
+      );
+      setFavoriteCount(prev => data.is_liked ? prev + 1 : Math.max(0, prev - 1));
     } catch (error) {
-        console.error("Error toggling like:", error);
-        alert(`Error: ${error.message}`);
+      console.error("Error toggling like:", error);
+      alert(`Error: ${error.message}`);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
   // Fetch data produk
   // onMount(async () => {
   //   // Fetch profile image jika ada userId
@@ -410,6 +475,8 @@ const ProductPage = () => {
     } else {
       navigate(`/products/detail/${productId}`);
     }
+    // Scroll ke atas halaman
+    window.scrollTo(0, 0);
   };
   const [clicked, setClicked] = createSignal(false);
   // Fungsi untuk update activity user
@@ -424,18 +491,14 @@ const ProductPage = () => {
     }).catch(console.error);
   };
 
-  const highlightText = (text, query) => {
-    if (!query) return text;
-    const parts = text.split(new RegExp(`(${query})`, "gi"));
-    return parts.map((part, i) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <span class="highlight" key={i}>{part}</span>
-      ) : (
-        part
-      )
-    );
+  const highlightSearchMatch = (text: string) => {
+    if (!searchQuery()) return text;
+    const regex = new RegExp(`(${searchQuery()})`, "gi");
+    return text.replace(regex, "<span class='highlight'>$1</span>");
   };
 
+
+  const [matchedProductId, setMatchedProductId] = createSignal<number | null>(null);
 
   return (
     <div class="landing-page">
@@ -453,12 +516,16 @@ const ProductPage = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
-          <button class="fav" onClick={goToFavoritePage}>
+          <div class="favorites-indicator" onClick={goToFavoritePage}>
             <img
               src={clicked() ? heartfull : heart}
-              alt="heart"
+              alt="Favorites"
+              class="favorites-icon"
             />
-          </button>
+            <Show when={favoriteCount() > 0}>
+              <span class="favorites-badge">{favoriteCount()}</span>
+            </Show>
+          </div>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
@@ -508,53 +575,59 @@ const ProductPage = () => {
               class="search-box"
               placeholder="Type something here"
               value={searchQuery()}
-              onInput={(e) => setSearchQuery(e.currentTarget.value)}
-            />
+              onInput={(e) => handleSearch(e.currentTarget.value)} />
             <button class="search-button">Search</button>
           </div>
         </div>
 
 
         <div class="products-grid3">
-          {products().map((product, index) => (
-            <div class="pro-card" key={product.id} onClick={() => goToProductDetail(product.id)} onMouseLeave={() => setMainImage(product.id, null)}>
-              <div class="product-img">
-                <img
-                  src={product.current_image} // Tidak perlu fallback karena sudah di-handle di setMainImage
-                  alt={product.name}
-                  onError={(e) => {
-                    e.currentTarget.src = '/fallback-image.jpg';
-                    e.currentTarget.onerror = null;
-                  }}
-                />
-              </div>
-              <span
-                class="heart-icon"
-                onClick={(e) => toggleLike(product.id, index, e)}
-                classList={{ 'loading': isLoading() }}
+          {products().filter(p => !searchQuery() ||
+            p.name.toLowerCase().includes(searchQuery().toLowerCase())).map((product, index) => (
+              <div
+                id={`product-${product.id}`}
+                class={`pro-card ${matchedProductId() === product.id ? 'highlight-match' : ''}`}
+                key={product.id}
+                onClick={() => goToProductDetail(product.id)}
+                onMouseLeave={() => setMainImage(product.id, null)}
               >
-                <img
-                  src={product.liked ? heartfull : heart}
-                  alt={product.liked ? "Unlike" : "Like"}
-                />
-              </span>
-              <p class="section-product">{product.category}</p>
-              <h3 innerHTML={highlightText(product.name, searchQuery())}></h3>
-              <p class="price">{product.price}</p>
-              <div class="color-optionss">
-                {product.colors.map((color) => (
-                  <span
-                    class="color"
-                    style={{
-                      background: color.color_code || getColorCode(color.color),
+                <div class="product-img">
+                  <img
+                    src={product.current_image} // Tidak perlu fallback karena sudah di-handle di setMainImage
+                    alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.src = '/fallback-image.jpg';
+                      e.currentTarget.onerror = null;
                     }}
-                    onMouseEnter={() => setMainImage(product.id, color.image)}
-                    onMouseLeave={() => setMainImage(product.id, null)} // Pastikan ini di-set ke null
                   />
-                ))}
+                </div>
+                <span
+                  class="favorite-button"
+                  onClick={(e) => toggleLike(product.id, index, e)}
+                  classList={{ 'loading': isLoading() }}
+                >
+                  <img
+                    src={product.liked ? heartfull : heart}
+                    alt={product.liked ? "Unlike" : "Like"}
+                  />
+                </span>
+                <p class="section-product">{product.category}</p>
+                <h3 innerHTML={highlightSearchMatch(product.name)}></h3>
+                <p class="price">{product.price}</p>
+                <div class="color-optionss">
+                  {product.colors.map((color) => (
+                    <span
+                      class="color"
+                      style={{
+                        background: color.color_code || getColorCode(color.color),
+                      }}
+                      onMouseEnter={() => setMainImage(product.id, color.image)}
+                      onMouseLeave={() => setMainImage(product.id, null)} // Pastikan ini di-set ke null
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section >
 
@@ -588,7 +661,7 @@ const ProductPage = () => {
           <div class="link-column">
             <h4>About Us</h4>
             <ul>
-              <li><a href="#">Company</a></li>
+              <li><a onClick={goToAboutUs}>Company</a></li>
               <li><a href="#">Community</a></li>
               <li><a href="#">Careers</a></li>
               <li><a href="#">Investors</a></li>

@@ -1,4 +1,4 @@
-import { createSignal, createEffect, onMount, onCleanup } from "solid-js";
+import { createSignal, createEffect, onMount, onCleanup, Show } from "solid-js";
 import AuthPopup from "../pages/authpopup";
 import { useSearchParams } from '@solidjs/router';
 import { useNavigate } from "@solidjs/router";
@@ -29,24 +29,6 @@ import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
 import './dashboard.css';
 
-interface ProductColor {
-    color: string;
-    color_name?: string;
-    color_code?: string;
-    image: string;
-}
-
-// interface Product {
-//     id: number;
-//     name: string;
-//     category: string;
-//     price: string;
-//     default_image: string;
-//     current_image: string;
-//     colors: ProductColor[];
-//     liked: boolean;
-// }
-
 const Dashboard = () => {
     const [searchParams] = useSearchParams();
     const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
@@ -67,8 +49,19 @@ const Dashboard = () => {
     ];
 
     const [error, setError] = createSignal<string | null>(null);
-
     const [loading, setLoading] = createSignal(true);
+    const [clicked, setClicked] = createSignal(false);
+
+    // Navigation functions with user ID
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+            updateUserActivity(id);
+        } else {
+            navigate(path);
+        }
+    };
 
     const goToDashboard = () => navigateWithUserId("/");
     const goToCart = () => navigateWithUserId("/cart");
@@ -76,14 +69,24 @@ const Dashboard = () => {
     const goToProducts = () => navigateWithUserId("/products");
     const goToAboutUs = () => navigateWithUserId("/about-us");
     const goToBlog = () => navigateWithUserId("/blogpage");
+    const goToHandbags = () => navigateWithUserId("/bags");
+    const goToClothes = () => navigateWithUserId("/clothes");
+    const goToAccessories = () => navigateWithUserId("/accessories");
+    const goToViewMore = () => navigateWithUserId("/viewmore");
+    const goToReadMore = (slug: string) => navigateWithUserId(`/blogpage/readmore/${slug}`);
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigateWithUserId("/favorite");
+    };
 
+    // Helper functions
     const formatImageUrl = (imagePath: string) => {
         if (!imagePath) return '/fallback-image.jpg';
         return imagePath.includes('http')
             ? imagePath
             : `http://127.0.0.1:8080/uploads/products/${imagePath}`;
     };
-    // User activity tracking
+
     const updateUserActivity = async (userId: string) => {
         try {
             await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
@@ -100,7 +103,6 @@ const Dashboard = () => {
             setLoading(true);
             const activeUserId = currentUserId() || userId;
 
-            // Fetch products dan colors sekaligus
             const [productsRes, colorsRes, likesRes] = await Promise.all([
                 fetch('http://127.0.0.1:8080/api/products'),
                 fetch('http://127.0.0.1:8080/api/product-colors'),
@@ -117,14 +119,11 @@ const Dashboard = () => {
             const colorsData = await colorsRes.json();
             const likedProducts = likesRes ? await likesRes.json() : [];
 
-            // Filter dan format produk
             const formattedProducts = productsData
                 .filter(product => product.category === 'Bags')
                 .slice(0, 3)
                 .map(product => {
-                    // Cari colors yang sesuai dengan product.id
                     const productColors = colorsData.filter(color => color.product_id === product.id);
-                    // Cek apakah produk ini difavoritkan oleh user
                     const isLiked = likedProducts.some(liked => liked.id === product.id);
 
                     return {
@@ -159,7 +158,6 @@ const Dashboard = () => {
         }
     };
 
-    // Helper function to convert color names to hex codes
     const getColorCode = (colorName) => {
         const colorMap = {
             red: '#8A191F',
@@ -174,16 +172,11 @@ const Dashboard = () => {
             gradient2: 'linear-gradient(to bottom, rgba(123, 110, 106, 1), rgba(221, 176, 104, 1))',
             gradient3: 'linear-gradient(to bottom, rgba(190, 128, 114, 1), rgba(221, 176, 104, 1))',
             gradient4: 'linear-gradient(to bottom, rgba(233, 217, 197, 1), rgba(221, 176, 104, 1))',
-            // Add other colors as needed
         };
         return colorMap[colorName.toLowerCase()] || '#CCCCCC';
     };
 
-    // Toggle like function
-    // Di dalam Dashboard component, tambahkan logika berikut:
-
     const toggleLike = async (productId: number) => {
-        // 1. Check authentication
         const activeUserId = currentUserId() || userId;
         if (!activeUserId) {
             setShowAuthPopup(true);
@@ -192,31 +185,23 @@ const Dashboard = () => {
 
         try {
             setIsLoading(true);
-
-            // 2. Make the API call without token (assuming session-based auth)
             const response = await fetch(`http://127.0.0.1:8080/api/products/like`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Cookie akan dikirim otomatis jika menggunakan session-based auth
                 },
                 body: JSON.stringify({
                     user_id: activeUserId,
                     product_id: productId
                 }),
-                credentials: 'include' // Penting untuk mengirim cookie
+                credentials: 'include'
             });
 
-            // 3. Handle response
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Error response:', errorData);
-
-                // Jika unauthorized, mungkin session expired
                 if (response.status === 401) {
                     setShowAuthPopup(true);
                 }
-
                 throw new Error(errorData.message || 'Failed to toggle like');
             }
 
@@ -231,28 +216,34 @@ const Dashboard = () => {
                         }
                         : product
                 )
+
             );
+            setFavoriteCount(prev => data.is_liked ? prev + 1 : Math.max(0, prev - 1));
         } catch (error) {
             console.error('Error toggling like:', error);
-            // Bisa tambahkan notifikasi error ke user
         } finally {
             setIsLoading(false);
         }
     };
 
-
-    // Initialize component
-    // Navigation functions
-    const navigateWithUserId = (path: string) => {
-        const id = currentUserId() || userId;
-        if (id) {
-            navigate(`${path}?user_id=${id}`); // Tambahkan user_id ke route
-            updateUserActivity(id);
-        } else {
-            navigate(path);
-        }
+    const setMainImage = (productId: number, image: string | null) => {
+        setProducts(prevProducts =>
+            prevProducts.map(product =>
+                product.id === productId
+                    ? {
+                        ...product,
+                        current_image: image || product.default_image
+                    }
+                    : product
+            )
+        );
     };
 
+    const highlightText = (text: string, query: string) => {
+        if (!query) return text;
+        const regex = new RegExp(`(${query})`, "gi");
+        return text.replace(regex, "<span class='highlight'>$1</span>");
+    };
 
     // Initialize component
     onMount(async () => {
@@ -265,26 +256,26 @@ const Dashboard = () => {
             }
             setCurrentUserId(activeUserId);
 
-            // Load user profile
+            const countRes = await fetch(`http://127.0.0.1:8080/user/${activeUserId}/likes/count`);
+            if (countRes.ok) {
+                const countData = await countRes.json();
+                setFavoriteCount(countData.count || 0);
+            }
+
             const userResponse = await fetch(`http://127.0.0.1:8080/user/${activeUserId}?_=${Date.now()}`);
             if (userResponse.ok) {
                 const userData = await userResponse.json();
                 setProfileImage(userData.img ? `http://127.0.0.1:8080/uploads/${userData.img}` : null);
             }
 
-            // Load online users
             const onlineRes = await fetch('http://127.0.0.1:8080/online-users');
             if (onlineRes.ok) {
                 setOnlineUsers(await onlineRes.json());
             }
 
-            // Update initial activity
             await updateUserActivity(activeUserId);
-
-            // Fetch products with user context
             await fetchProducts();
 
-            // Set up activity tracking - dipindahkan ke dalam createEffect
             createEffect(() => {
                 const interval = setInterval(() => {
                     if (activeUserId) {
@@ -298,33 +289,7 @@ const Dashboard = () => {
             console.error('Failed to initialize component:', error);
         }
     });
-
-    const setMainImage = (productId: number, image: string | null) => {
-        setProducts(prevProducts =>
-            prevProducts.map(product =>
-                product.id === productId
-                    ? {
-                        ...product,
-                        current_image: image || product.default_image // Pastikan fallback ke default_image jika null
-                    }
-                    : product
-            )
-        );
-    };
-
-    // Highlight search text
-    const highlightText = (text: string, query: string) => {
-        if (!query) return text;
-        const regex = new RegExp(`(${query})`, "gi");
-        return text.replace(regex, "<span class='highlight'>$1</span>");
-    };
-
-    const goToFavoritePage = () => {
-        setClicked(true);
-        navigate("/favorite");
-    };
-
-    const [clicked, setClicked] = createSignal(false);
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
 
     return (
         <div class="landing-page">
@@ -347,12 +312,16 @@ const Dashboard = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
-                    <button class="fav" onClick={goToFavoritePage}>
+                <div class="favorites-indicator" onClick={goToFavoritePage}>
                         <img
-                            src={clicked() ? heartfull : heart}
-                            alt="heart"
+                            src={heart}
+                            alt="Favorites"
+                            class="favorites-icon"
                         />
-                    </button>
+                        <Show when={favoriteCount() > 0}>
+                            <span class="favorites-badge">{favoriteCount()}</span>
+                        </Show>
+                    </div>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
@@ -388,7 +357,7 @@ const Dashboard = () => {
                     <div class="overlay-lines"></div>
                     <h1>Wear Confidence, Own the Moment</h1>
                     <p>Discover exquisite fashion pieces that accentuate your style and confidence. Elevate your everyday look with our curated collection.</p>
-                    <button class="explore-btn">Get Started</button>
+                    <button class="explore-btn" onClick={goToProducts}>Get Started</button>
                 </div>
                 <div class="limited-offer">
                     <span>Limited Edition Alert! New arrivals are here - Don't miss out</span>
@@ -403,7 +372,7 @@ const Dashboard = () => {
             <section class="fresh-drops">
                 <div class="section-header">
                     <h2>Fresh Drops for You</h2>
-                    <button onclick={goToProducts} class="view-all">View More</button>
+                    <button onClick={goToProducts} class="view-all">View More</button>
                 </div>
                 <div class="products-grid">
                     {products().map((product) => (
@@ -421,9 +390,9 @@ const Dashboard = () => {
                             </div>
                             <p class="section-products">{product.category}</p>
                             <span
-                                class={`heart-icon ${isLoading() ? 'loading' : ''}`}
+                                class={`favorite-button ${isLoading() ? 'loading' : ''}`}
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Mencegah event bubbling
+                                    e.stopPropagation();
                                     toggleLike(product.id);
                                 }}
                             >
@@ -444,7 +413,6 @@ const Dashboard = () => {
                                             background: color.color_code || getColorCode(color.color),
                                         }}
                                         onMouseEnter={() => setMainImage(product.id, color.image)}
-                                        onMouseLeave={() => setMainImage(product.id, null)}
                                     />
                                 ))}
                             </div>
@@ -457,19 +425,19 @@ const Dashboard = () => {
             <section class="categories-sec">
                 <div class="category-card-sec handbag">
                     <h2>Bags</h2>
-                    <button class="shop-now-btn" onClick={() => navigate("/handbags")}>
+                    <button class="shop-now-btn" onClick={goToHandbags}>
                         Shop Now
                     </button>
                 </div>
                 <div class="category-card-sec clothes">
                     <h2>Clothes</h2>
-                    <button class="shop-now-btn" onClick={() => navigate("/clothes")}>
+                    <button class="shop-now-btn" onClick={goToClothes}>
                         Shop Now
                     </button>
                 </div>
                 <div class="category-card-sec accessories">
                     <h2>Accessories</h2>
-                    <button class="shop-now-btn" onClick={() => navigate("/accessories")}>
+                    <button class="shop-now-btn" onClick={goToAccessories}>
                         Shop Now
                     </button>
                 </div>
@@ -481,11 +449,12 @@ const Dashboard = () => {
                 <span>Be Bold, Be Different – Fashion is an Expression!</span>
                 <span>Be Bold, Be Different – Fashion is an Expression!</span>
             </div>
+
             {/* Lifestyle Banner */}
             <section class="lifestyle-banner">
                 <div class="banner-text">
                     <h2>Beyond Fashion, It's a Lifestyle</h2>
-                    <a href="/about-us" class="view-all">About Us</a>
+                    <a onClick={goToAboutUs} class="view-all">About Us</a>
                 </div>
                 <div class="features">
                     <div class="feature">
@@ -523,7 +492,7 @@ const Dashboard = () => {
             <section class="style-motion">
                 <div class="section-header">
                     <h2>Style in Motion</h2>
-                    <a href="/viewmore" class="view-all">View More</a>
+                    <a onClick={goToViewMore} class="view-all">View More</a>
                 </div>
                 <div class="motion-grid">
                     {videoData.map((video) => {
@@ -568,31 +537,31 @@ const Dashboard = () => {
             <section class="style-talks">
                 <div class="section-header">
                     <h2>Style Talks & Trends</h2>
-                    <a href="/blogpage" class="blog">Blog</a>
+                    <a onClick={goToBlog} class="blog">Blog</a>
                 </div>
                 <div class="blog-posts">
                     <div class="blog-post">
                         <img src={fashiontips} alt="Fashion Tips" />
                         <div class="blog-content">
                             <h3>5 Fashion Tips to Instantly Elevate Your Look</h3>
-                            <p>Want to level up your style effortlessly? Fashion is more than just clothes—it’s about confidence, attitude, and knowing how to put the right pieces together. In this article, we’ll explore five expert-approved fashion tips that will help you transform your everyday outfits into stunning, head-turning ensembles. From understanding color coordination to choosing the right accessories, these simple yet effective tricks will make a significant difference in your personal style.</p>
-                            <a href="#" class="read-more">Read More</a>
+                            <p>Want to level up your style effortlessly? Fashion is more than just clothes—it's about confidence, attitude, and knowing how to put the right pieces together...</p>
+                            <a onClick={() => goToReadMore("5-fashion-tips")} class="read-more">Read More</a>
                         </div>
                     </div>
                     <div class="blog-post">
                         <img src={mixnmatch} alt="Mix & Match" />
                         <div class="blog-content">
                             <h3>Mix & Match: The Art of Pairing Bags & Outfits</h3>
-                            <p>A great outfit isn’t complete without the perfect bag. But how do you choose the right one? Whether you’re going for a chic, casual, or elegant look, the way you pair your bag with your outfit can elevate your style effortlessly. This article will guide you through the essentials of bag-outfit coordination, including color harmony, texture balance, and occasion-based selections. Learn how to make a statement with the perfect mix-and-match combinations!</p>
-                            <a href="#" class="read-more">Read More</a>
+                            <p>A great outfit isn't complete without the perfect bag. But how do you choose the right one? Whether you're going for a chic, casual, or elegant look...</p>
+                            <a onClick={() => goToReadMore("mix-match-bags")} class="read-more">Read More</a>
                         </div>
                     </div>
                     <div class="blog-post">
                         <img src={behindthedesign} alt="Behind the Design" />
                         <div class="blog-content">
                             <h3>Behind the Design: The Inspiration Behind Our Collection</h3>
-                            <p>Every piece in our collection has a story. From concept to creation, our design process is driven by inspiration from global fashion trends, cultural influences, and timeless style. In this exclusive behind-the-scenes look, we’ll walk you through the journey of how our latest collection came to life—starting from mood boards, fabric selection, to the final product. Get an insider’s perspective on the creative process, and discover the passion behind every stitch and detail.</p>
-                            <a href="#" class="read-more">Read More</a>
+                            <p>Every piece in our collection has a story. From concept to creation, our design process is driven by inspiration from global fashion trends...</p>
+                            <a onClick={() => goToReadMore("design-inspiration")} class="read-more">Read More</a>
                         </div>
                     </div>
                 </div>
@@ -618,16 +587,16 @@ const Dashboard = () => {
                     <div class="link-column">
                         <h4>Theyy Wearr.</h4>
                         <ul>
-                            <li><a href="#">Home</a></li>
-                            <li><a href="#">Product</a></li>
-                            <li><a href="#">About Us</a></li>
-                            <li><a href="#">Blog</a></li>
+                            <li><a onClick={goToDashboard}>Home</a></li>
+                            <li><a onClick={goToProducts}>Product</a></li>
+                            <li><a onClick={goToAboutUs}>About Us</a></li>
+                            <li><a onClick={goToBlog}>Blog</a></li>
                         </ul>
                     </div>
                     <div class="link-column">
                         <h4>About Us</h4>
                         <ul>
-                            <li><a href="#">Company</a></li>
+                            <li><a onClick={goToAboutUs}>Company</a></li>
                             <li><a href="#">Community</a></li>
                             <li><a href="#">Careers</a></li>
                             <li><a href="#">Investors</a></li>
@@ -662,7 +631,6 @@ const Dashboard = () => {
                     </div>
                 </div>
             </footer>
-
         </div>
     );
 };

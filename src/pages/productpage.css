@@ -19,12 +19,21 @@ a {
     color: inherit;
 }
 
-button {
+/* button {
     cursor: pointer;
     background: none;
     border: none;
     outline: none;
+} */
+.highlight {
+    background-color: #BFBEBE;
+    color: black;
+    padding: 0px;
+    font-weight: bold;
 }
+
+/* Tambahkan animasi untuk produk yang dicari */
+
 
 ul {
     list-style: none;
@@ -414,7 +423,7 @@ header {
     height: 28px;
     cursor: pointer;
     border-radius: 50%;
-    border: 0.1px solid #B6B7BA;
+    border: 0.1px solid #B6B7BA !important;
     box-shadow: inset 0 0 0 1px white;
     /* Efek border dalam */
 }
@@ -841,10 +850,6 @@ header {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .footer-links {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
 
 @media (max-width: 768px) {
     nav ul {
@@ -867,9 +872,7 @@ header {
         height: 200px;
     }
 
-    .footer-top {
-        grid-template-columns: 1fr;
-    }
+
 }
 
 @media (max-width: 576px) {
@@ -880,7 +883,4 @@ header {
         grid-template-columns: 1fr;
     }
 
-    .footer-links {
-        grid-template-columns: 1fr;
-    }
-}
+}}

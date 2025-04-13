@@ -123,6 +123,38 @@ header {
 .navbar a:hover {
   color: #000; /* Warna saat hover */
 }
+.fav-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.favorites-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #8A191F;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.favorites-indicator {
+  position: relative;
+  cursor: pointer;
+}
+
+.favorites-icon {
+  width: 24px;
+  height: 24px;
+}
 
 .auth-buttons {
   margin-right: -30px;
@@ -619,7 +651,7 @@ footer {
 }
 
 .newsletter {
-  margin-top: -200px;
+  margin-top: -250px;
   display: flex;
   flex-direction: column;
   justify-content: center;

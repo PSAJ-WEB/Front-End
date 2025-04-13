@@ -1,4 +1,4 @@
-import { createSignal, onMount, For } from "solid-js";
+import { createSignal, onMount, For, Show, createEffect } from "solid-js";
 import { useParams, useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
@@ -41,8 +41,9 @@ const ProductPageDetail = () => {
     const [selectedColorIndex, setSelectedColorIndex] = createSignal(0);
     const [quantity, setQuantity] = createSignal(1);
     const [isLoading, setIsLoading] = createSignal(false);
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
 
-    const handleQuantityChange = (increment) => {
+    const handleQuantityChange = (increment: boolean) => {
         if (increment) {
             setQuantity(quantity() + 1);
         } else if (quantity() > 1) {
@@ -54,56 +55,41 @@ const ProductPageDetail = () => {
         try {
             setLoading(true);
             setError(null);
-
-            const [productRes, colorsRes, likesRes] = await Promise.all([
-                fetch(`http://127.0.0.1:8080/api/products/${productId}`),
-                fetch(`http://127.0.0.1:8080/api/product-colors?product_id=${productId}`),
-                userId ? fetch(`http://127.0.0.1:8080/user/${userId}/likes`) : Promise.resolve(null)
-            ]);
-
-            if (!productRes.ok) throw new Error(`Product error: ${productRes.status}`);
-            if (!colorsRes.ok) throw new Error(`Colors error: ${colorsRes.status}`);
-
-            const productData = await productRes.json();
-            const colorsData = await colorsRes.json();
-
-            const productDetail: ProductDetail = {
-                id: productData.id,
-                name: productData.name,
-                category: productData.category,
-                price: productData.price,
-                default_image: productData.default_image?.includes('http')
-                    ? productData.default_image
-                    : `http://127.0.0.1:8080/uploads/products/${productData.default_image}`,
-                description: productData.description || "No description available",
-                rating: productData.rating || 5.0,
-                sold: productData.sold || 0,
-                colors: colorsData.map((color: any) => ({
-                    color: color.color,
-                    color_code: getColorCode(color.color),
-                    image: color.image?.includes('http')
-                        ? color.image
-                        : `http://127.0.0.1:8080/uploads/products/${color.image}`
-                })),
-                liked: false,
-                likes_count: productData.likes_count || 0
-            };
-
-            if (userId && likesRes?.ok) {
-                const likedProducts = await likesRes.json();
-                productDetail.liked = likedProducts.some((lp: any) => lp.id === productId);
-            }
-
-            setProduct(productDetail);
+            
+            const response = await fetch(`http://127.0.0.1:8080/api/products/${productId}`);
+            console.log("Raw response:", response); // Tambahkan ini
+            
+            const productData = await response.json();
+            console.log("Parsed data:", productData); // Tambahkan ini
+            
+            if (!response.ok) throw new Error(`Product error: ${response.status}`);
+            if (!productData) throw new Error("Empty response");
+            
+            // ... rest of your code
         } catch (err) {
+            console.error("Full error:", err); // Tambahkan ini
             setError(err.message);
-            console.error('Error fetching product details:', err);
         } finally {
             setLoading(false);
         }
     };
+    const fetchUserProfile = async () => {
+        if (!userId) return;
 
-    const getColorCode = (colorName) => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.img) {
+                    setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    };
+
+    const getColorCode = (colorName: string) => {
         const colorMap = {
             // Basic colors
             red: '#8A191F',
@@ -137,20 +123,19 @@ const ProductPageDetail = () => {
             pinkmuda: '#E4BABB',
             beige: '#E5D2B2',
             ijo: '#594D0F',
-            lightgrey: '#CC7633', // Note: Same as orange
-            ashgrey: '#CC7633',  // Note: Same as orange
+            lightgrey: '#CC7633',
+            ashgrey: '#CC7633',
             blacky: '#222427',
             denim: '#7F90A1',
             grey: 'rgba(100, 89, 87, 1)',
 
-            // Gradient colors (returning first color as fallback)
+            // Gradient colors
             gradient1: 'linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(221, 176, 104, 1))',
             gradient2: 'linear-gradient(to bottom, rgba(123, 110, 106, 1), rgba(221, 176, 104, 1))',
             gradient3: 'linear-gradient(to bottom, rgba(190, 128, 114, 1), rgba(221, 176, 104, 1))',
             gradient4: 'linear-gradient(to bottom, rgba(233, 217, 197, 1), rgba(221, 176, 104, 1))',
 
-
-            // Special glasses gradients (returning first color as fallback)
+            // Special glasses gradients
             glasses1: 'radial-gradient(circle, hsla(220, 15%, 24%, 1) 30%, hsla(53, 4%, 82%, 1) 100%)',
             glasses2: 'radial-gradient(circle, #717A71 30%, #CDC6AA 100%)',
             glasses3: 'radial-gradient(circle, #FFD16E 15%, #2B1F1A 70%)',
@@ -201,24 +186,58 @@ const ProductPageDetail = () => {
         }
     };
 
+    const addToCart = async () => {
+        if (!userId) {
+            navigate("/account");
+            return;
+        }
+
+        const currentProduct = product();
+        if (!currentProduct) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    product_id: currentProduct.id,
+                    color: currentProduct.colors[selectedColorIndex()].color,
+                    color_code: currentProduct.colors[selectedColorIndex()].color_code,
+                    quantity: quantity(),
+                }),
+            });
+
+            if (response.ok) {
+                alert("Product added to cart successfully!");
+            } else {
+                throw new Error("Failed to add to cart");
+            }
+        } catch (error) {
+            console.error("Error adding to cart:", error);
+            alert("Failed to add to cart");
+        }
+    };
+
     onMount(() => {
         fetchProductDetail();
+        if (userId) fetchUserProfile();
     });
+    const [onlineUsers, setOnlineUsers] = createSignal<{ id: string }[]>([]);
 
-    if (loading()) {
-        return <div class="loading">Loading...</div>;
-    }
 
-    if (error()) {
-        return <div class="error">Error: {error()}</div>;
-    }
+    const [clicked, setClicked] = createSignal(false);
 
-    if (!product()) {
-        return <div class="not-found">Product not found</div>;
-    }
-
-    const currentProduct = product()!;
-
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
+    }; const goToAccount = () => navigateWithUserId("/account");
+    const goToDashboard = () => navigateWithUserId("/dashboard");
+    const goToProducts = () => navigateWithUserId("/products");
+    const goToAboutUs = () => navigateWithUserId("/about-us");
+    const goToBlog = () => navigateWithUserId("/blogpage");
     return (
         <div class="product-page">
             {/* Header */}
@@ -228,141 +247,222 @@ const ProductPageDetail = () => {
                 </div>
                 <nav class="navbar">
                     <ul>
-                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
-                        <li><a onClick={() => navigateWithUserId("/products")}>Products</a></li>
-                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
-                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
+                        <li><a onClick={goToDashboard}>Home</a></li>
+                        <li><a onClick={goToProducts} class="active">Products</a></li>
+                        <li><a onClick={goToAboutUs}>About Us</a></li>
+                        <li><a onClick={goToBlog}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
-                    <button class="dash-cart-btn" onClick={() => navigateWithUserId("/cart")}>
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
+                    <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
-                    <button class="dash-account-btn" onClick={() => navigateWithUserId("/account")}>
-                        <img src={accountIcon} alt="Account" />
-                    </button>
-                </div>
-            </header>
-
-            {/* Product Details Section */}
-
-            {/* Product Details Section */}
-            <section class="product-detail">
-                <div class="product-images">
-                    <div class="main-image-detail">
+                    <div class="dash-account-btn" onClick={goToAccount}>
                         <img
-                            src={currentProduct.colors[selectedColorIndex()].image}
-                            alt={currentProduct.name}
-                            onError={(e) => {
-                                e.currentTarget.src = '/fallback-image.jpg';
-                                e.currentTarget.onerror = null;
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover',
+                                "border": '2px solid ' + (onlineUsers().some(u => u.id === userId) ? '#4CAF50' : '#ccc')
                             }}
                         />
-                    </div>
-                    <div class="thumbnail-image">
-                        <For each={currentProduct.colors}>
-                            {(color, index) => (
-                                <div
-                                    class={`thumbnails ${index() === selectedColorIndex() ? 'active' : ''}`}
-                                    onClick={() => setSelectedColorIndex(index())}
-                                >
-                                    <img
-                                        src={color.image}
-                                        alt={`${currentProduct.name} color ${color.color}`}
-                                        onError={(e) => {
-                                            e.currentTarget.src = '/fallback-image.jpg';
-                                            e.currentTarget.onerror = null;
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </For>
+                        {onlineUsers().some(u => u.id === userId) && (
+                            <div class="online-status-dot"></div>
+                        )}
                     </div>
                 </div>
+            </header >
 
-                <div class="product-info">
-                    <div class="category">{currentProduct.category}</div>
-                    <h1 class="product-name">{currentProduct.name}</h1>
-
-                    <div class="rating">
-                        <span class="stars">
-                            {"⭐".repeat(Math.floor(currentProduct.rating))}
-                        </span>
-                        <span class="rating-value">{currentProduct.rating.toFixed(1)}</span>
-                        <span class="sold">{currentProduct.sold} sold</span>
-                    </div>
-
-                    <div class="price-detail">{currentProduct.price}</div>
-
-                    <div class="description">
-                        <h2>Description</h2>
-                        <p>{currentProduct.description}</p>
-                    </div>
-
-                    <div class="color-selection">
-                        <h2>Color</h2>
-                        <div class="color-options-detail">
-                            <For each={currentProduct.colors}>
+            {/* Product Details Section */}
+            <Show when={!error() && product()} fallback={<div class="error">Error: {error() || "Product not found"}</div>}>
+                <section class="product-detail">
+                    <div class="product-images">
+                        <div class="main-image-detail">
+                            <img
+                                src={product()!.colors[selectedColorIndex()].image || product()!.default_image}
+                                alt={product()!.name}
+                                onError={(e) => {
+                                    e.currentTarget.src = product()!.default_image || '/fallback-image.jpg';
+                                    e.currentTarget.onerror = null;
+                                }}
+                            />
+                        </div>
+                        <div class="thumbnail-images">
+                            <For each={product()!.colors}>
                                 {(color, index) => (
                                     <div
-                                        class={`color ${index() === selectedColorIndex() ? 'selected' : ''}`}
-                                        style={{ background: color.color_code }}
+                                        class={`thumbnail ${index() === selectedColorIndex() ? 'active' : ''}`}
                                         onClick={() => setSelectedColorIndex(index())}
-                                    />
+                                    >
+                                        <img
+                                            src={color.image || product()!.default_image}
+                                            alt={`${product()!.name} color ${color.color}`}
+                                            onError={(e) => {
+                                                e.currentTarget.src = product()!.default_image || '/fallback-image.jpg';
+                                                e.currentTarget.onerror = null;
+                                            }}
+                                        />
+                                    </div>
                                 )}
                             </For>
                         </div>
                     </div>
 
-                    <div class="quantity-section">
-                        <h2>Quantity</h2>
-                        <div class="quantity-selector">
-                            <button
-                                class="quantity-btn"
-                                onClick={() => handleQuantityChange(false)}
-                            >
-                                −
-                            </button>
-                            <input
-                                type="number"
-                                min="1"
-                                value={quantity()}
-                                onInput={(e) => setQuantity(Math.max(1, parseInt(e.currentTarget.value) || 1))}
-                            />
-                            <button
-                                class="quantity-btn"
-                                onClick={() => handleQuantityChange(true)}
-                            >
-                                +
-                            </button>
+                    <div class="product-info">
+                        <div class="category">{product()!.category}</div>   
+                        <h1 class="product-name">{product()!.name}</h1>
+
+                        <div class="rating">
+                            <span class="stars">
+                                {"⭐".repeat(Math.floor(product()!.rating))}
+                            </span>
+                            <span class="rating-value">{product()!.rating.toFixed(1)}</span>
+                            <span class="sold">{product()!.sold} sold</span>
+                        </div>
+
+                        <div class="price-detail">{product()!.price}</div>
+
+                        <div class="description">
+                            <h2>Description</h2>
+                            <p>{product()!.description}</p>
+                        </div>
+
+                        <div class="color-selection">
+                            <h2>Color</h2>
+                            <div class="color-options-detail">
+                                <For each={product()!.colors}>
+                                    {(color, index) => (
+                                        <div
+                                            class={`color ${index() === selectedColorIndex() ? 'selected' : ''}`}
+                                            style={{ background: color.color_code }}
+                                            onClick={() => setSelectedColorIndex(index())}
+                                            title={color.color} // Add tooltip with color name
+                                        />
+                                    )}
+                                </For>
+                            </div>
+                        </div>
+
+                        <div class="quantity-section">
+                            <h2>Quantity</h2>
+                            <div class="quantity-selector">
+                                <button
+                                    class="quantity-btn"
+                                    onClick={() => handleQuantityChange(false)}
+                                >
+                                    −
+                                </button>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={quantity()}
+                                    onInput={(e) => setQuantity(Math.max(1, parseInt(e.currentTarget.value) || 1))}
+                                />
+                                <button
+                                    class="quantity-btn"
+                                    onClick={() => handleQuantityChange(true)}
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="buy-now">Buy Now</button>
+                            <button class="add-to-cart" onClick={addToCart}>Add to Cart</button>
+                        </div>
+
+                        <div
+                            class="heart-icon"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLike();
+                            }}
+                            classList={{ 'loading': isLoading() }}
+                        >
+                            <img src={product()!.liked ? heartfull : heart} alt="Like" />
+                            {(product()!.likes_count ?? 0) > 0 && (
+                                <span class="like-count">{product()!.likes_count}</span>
+                            )}
                         </div>
                     </div>
+                </section>
+            </Show>
 
-                    <div class="action-buttons">
-                        <button class="buy-now">Buy Now</button>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
 
-                    <div
-                        class="heart-icon"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            toggleLike();
-                        }}
-                        classList={{ 'loading': isLoading() }}
-                    >
-                        <img src={currentProduct.liked ? heartfull : heart} alt="Like" />
-                        {(currentProduct.likes_count ?? 0) > 0 && (
-                            <span class="like-count">{currentProduct.likes_count}</span>
-                        )}
-                    </div>
-                </div>
-            </section>
             <img src={befooter} alt="Banner" class="full-width-image" />
 
             {/* Footer */}
             <footer>
-                {/* ... (kode footer) ... */}
+                <div class="footer-top">
+                    <div class="store-image">
+                        <img src={logowhite} alt="Our Store" />
+                    </div>
+                    <div class="newsletter">
+                        <p>Stay updated with our latest drops & exclusive deals</p>
+                        <div class="subscribe-form">
+                            <input type="email" placeholder="Enter your email" />
+                            <button>Submit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <div class="link-column">
+                        <h4>Theyy Wearr.</h4>
+                        <ul>
+                            <li><a onClick={goToDashboard}>Home</a></li>
+                            <li><a onClick={goToProducts}>Product</a></li>
+                            <li><a onClick={goToAboutUs}>About Us</a></li>
+                            <li><a onClick={goToBlog}>Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="link-column">
+                        <h4>About Us</h4>
+                        <ul>
+                            <li><a onClick={goToAboutUs}>Company</a></li>
+                            <li><a href="#">Community</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Investors</a></li>
+                        </ul>
+                    </div>
+                    <div class="link-column">
+                        <h4>Get More</h4>
+                        <ul>
+                            <li><a href="#">Upgrade Premium</a></li>
+                            <li><a href="#">Personal Plan</a></li>
+                            <li><a href="#">Business Plan</a></li>
+                            <li><a href="#">Enterprise Plan</a></li>
+                        </ul>
+                    </div>
+                    <div class="link-column">
+                        <h4>Connect With Us</h4>
+                        <ul>
+                            <li><a href="#">Twitter</a></li>
+                            <li><a href="#">Facebook</a></li>
+                            <li><a href="#">Youtube</a></li>
+                            <li><a href="#">Instagram</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <p>@ 2025 Theyy Wearr. Inc</p>
+                    <p>Terms and privacy</p>
+                    <div class="translate-section">
+                        <img src={translate} alt="Translate Icon" />
+                        <span>English</span>
+                    </div>
+                </div>
             </footer>
         </div>
     );

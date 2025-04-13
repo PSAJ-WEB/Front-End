@@ -152,7 +152,7 @@ export const routes: RouteDefinition[] = [
     component: Clothes,
   },
   {
-    path: '/handbags',
+    path: '/bags',
     component: Handbags,
   },
   {

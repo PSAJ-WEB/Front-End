@@ -1,192 +1,317 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount, createEffect, Show } from "solid-js";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import "./FavoritePage.css";
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
+import heartfull from '../img/Heart (1).svg';
 import accountIcon from '../img/UserCircle (2).svg';
-import { useNavigate } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
-import { createEffect, onCleanup } from "solid-js";
-import { useLocation } from "@solidjs/router";
 import translate from '../img/Translate.svg';
-import tas2groupbrown from '../img/2 ) Retro Small Square Handbag/1 RSSH BROWN (Cover).svg';
-import tas4groupblack from '../img/4) Frosted Bowling Handbag/1 FBH BLACK (Cover).svg';
-import clothes1 from '../img/Theyy Wearr Blouses Catalogue/Line Drawing Floral Pattern Blouse.svg';
-import metalsunglasses from '../img/Metal Sunglasses.svg';
-import thinbeltsquarebuckle from '../img/Thin Belt with Square Buckle.svg'
 
 interface Product {
     id: number;
-    category: string;
     name: string;
-    price: number;
-    image: string;
-    colors: string[];
-    isFavorite: boolean;
+    category: string;
+    price: string;
+    default_image: string | null;
+    liked: boolean;
 }
 
 export default function FavoritesPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const [favoriteProducts, setFavoriteProducts] = createSignal<Product[]>([]);
+    const [loading, setLoading] = createSignal(true);
+    const [error, setError] = createSignal("");
+    const [userId, setUserId] = createSignal<string | null>(null);
+    const [searchQuery, setSearchQuery] = createSignal("");
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
+    const [scrollToId, setScrollToId] = createSignal<number | null>(null);
+    const [totalFavorites, setTotalFavorites] = createSignal(0);
 
-    // Fungsi untuk navigasi ke halaman Cart
-    const goToCart = () => {
-        navigate("/cart");
+    // Format image URL
+    const formatImageUrl = (imagePath: string | null) => {
+        if (!imagePath) return '/fallback-image.jpg';
+        return imagePath.includes('http')
+            ? imagePath
+            : `http://127.0.0.1:8080/uploads/products/${imagePath}`;
     };
 
-    const location = useLocation();
+    // Highlight search matches in product names
+    const highlightSearchMatch = (name: string) => {
+        if (!searchQuery()) return name;
+        const regex = new RegExp(`(${searchQuery()})`, 'gi');
+        return name.replace(regex, '<span class="highlight">$1</span>');
+    };
 
-    createEffect(() => {
+    // Fetch user profile image
+    const fetchUserProfile = async (userId: string) => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+            if (response.ok) {
+                const userData = await response.json();
+                setProfileImage(userData.img ? `http://127.0.0.1:8080/uploads/${userData.img}` : null);
+            }
+        } catch (err) {
+            console.error("Error fetching user profile:", err);
+        }
+    };
+
+    // Fetch favorite products
+    const fetchFavoriteProducts = async (search = "") => {
+        const currentUserId = userId();
+        if (!currentUserId) {
+            setError("User ID tidak valid");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError("");
+
+            const url = `http://127.0.0.1:8080/user/${currentUserId}/likes${search ? `?search=${encodeURIComponent(search)}` : ''}`;
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gagal memuat favorit: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setFavoriteProducts(data);
+            if (!search) {
+                setTotalFavorites(data.length);
+            }
+            setFavoriteCount(data.length);
+
+            // If search query exists, scroll to first match
+            if (search && data.length > 0) {
+                setScrollToId(data[0].id);
+            }
+        } catch (err) {
+            setError(err.message);
+            console.error("Error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Toggle like/unlike product
+    const toggleFavorite = async (productId: number) => {
+        try {
+            const response = await fetch("http://127.0.0.1:8080/api/products/like", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_id: userId(),
+                    product_id: productId
+                }),
+            });
+
+            if (!response.ok) throw new Error("Gagal update favorit");
+
+            await fetchFavoriteProducts(searchQuery());
+        } catch (err) {
+            console.error("Error:", err);
+            setError("Gagal mengupdate favorit");
+        }
+    };
+
+    
+    // Handle search with debounce
+    let searchTimeout: number;
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        searchTimeout = setTimeout(() => {
+            fetchFavoriteProducts(query);
+        }, 300);
+    };
+
+    // Navigate with user_id
+    const navigateWithUserId = (path: string) => {
+        const id = userId();
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+        } else {
+            navigate(path);
+        }
+    };
+
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToAccount = () => navigateWithUserId("/account");
+    const goToProduct = (productId: number) => navigateWithUserId(`/products/${productId}`);
+    const goToHome = () => navigateWithUserId("/");
+
+    // Initialize on mount
+    onMount(() => {
+        const id = searchParams.user_id;
+        if (id) {
+            setUserId(id);
+            fetchUserProfile(id);
+            fetchFavoriteProducts().then(() => {
+                // Setelah load awal, kita sudah punya totalFavorites
+            });
+        } else {
+            setError("User ID tidak ditemukan");
+            setLoading(false);
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
-
-
-    // Fungsi untuk navigasi ke halaman Account
-    const goToAccount = () => {
-        navigate("/account");
-    };
-    const goToReadMore = () => {
-        navigate("/blogpage/readmore5fahion");
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }, 100); // Memberi jeda agar navigasi selesai dulu
-    };
-
-    const [favoriteProducts, setFavoriteProducts] = createSignal<Product[]>([
-        {
-            id: 1,
-            category: "Bags",
-            name: "Retro Small Square Handbag",
-            price: 174000,
-            image: tas2groupbrown,
-            colors: ["#000000", "#8B4513", "#808000", "#F5DEB3"],
-            isFavorite: true
-        },
-        {
-            id: 2,
-            category: "Bags",
-            name: "Frosted Bowling Handbag",
-            price: 192000,
-            image: tas4groupblack,
-            colors: ["#000000", "#5D4037", "#8B4513", "#CD853F"],
-            isFavorite: true
-        },
-        {
-            id: 3,
-            category: "Clothes",
-            name: "Drawing Floral Pattern Blouse",
-            price: 300000,
-            image: clothes1,
-            colors: ["#F5F5DC"],
-            isFavorite: true
-        },
-        {
-            id: 4,
-            category: "Accessories",
-            name: "Metal Sunglasses",
-            price: 86900,
-            image: metalsunglasses,
-            colors: ["#808080"],
-            isFavorite: true
-        },
-        {
-            id: 5,
-            category: "Accessories",
-            name: "Thin Belt Square Buckle",
-            price: 110400,
-            image: thinbeltsquarebuckle,
-            colors: ["#000000"],
-            isFavorite: true
+    // Scroll to product when scrollToId changes
+    createEffect(() => {
+        const id = scrollToId();
+        if (id) {
+            const element = document.getElementById(`product-${id}`);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest"
+                    });
+                }, 100);
+            }
         }
-    ]);
+    });
+    const goToFavorites = () => navigateWithUserId("/favorites");
 
-    const toggleFavorite = (id: number) => {
-        setFavoriteProducts(
-            favoriteProducts().map(product =>
-                product.id === id ? { ...product, isFavorite: !product.isFavorite } : product
-            )
-        );
-    };
-
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat("id-ID").format(price) + " IDR";
-    };
-
-    const handleSearch = (e: Event) => {
-        e.preventDefault();
-        const form = e.target as HTMLFormElement;
-        const searchInput = form.querySelector('input') as HTMLInputElement;
-        const searchTerm = searchInput.value;
-        // Implementation for search functionality would go here
-        console.log(`Searching for: ${searchTerm}`);
-    };
-
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
     return (
-        <div class="Container">
+        <div class="favorites-container">
             {/* Header */}
             <header>
                 <div class="logo">
                     <img src={logo} alt="Logo" />
                 </div>
-                <nav class="navbar-blog">
+                <nav class="navbar">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products">Products</a></li>
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/blogpage">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")}>Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <div class="favorites-indicator" onClick={goToFavorites}>
+                        <img
+                            src={heartfull}
+                            alt="Favorites"
+                            class="favorites-icon"
+                            style={{ filter: "brightness(0) invert(0)" }}
+                        />
+                        <Show when={totalFavorites() > 0}>
+                            <span class="favorites-badge">{totalFavorites()}</span>
+                        </Show>
+                    </div>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
-                    {/* Tombol Account dengan Navigasi */}
                     <button class="dash-account-btn" onClick={goToAccount}>
-                        <img src={accountIcon} alt="Account" />
+                        <img
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover'
+                            }}
+                        />
                     </button>
                 </div>
             </header>
 
-            <main class="main-content">
+            <main class="favorites-main">
                 <div class="favorites-header">
                     <h1 class="page-title">Favorites</h1>
-                    <form class="search-form" onSubmit={handleSearch}>
-                        <input type="text" placeholder="Type something here" />
-                        <button type="submit">Search</button>
-                    </form>
+                    <div class="search-container">
+                        <input
+                            type="text"
+                            class="search-box"
+                            placeholder="Type something here"
+                            value={searchQuery()}
+                            onInput={(e) => handleSearch(e.target.value)}
+                        />
+                        <button class="search-button">Search</button>
+                    </div>
                 </div>
 
-                <div class="products-grid">
-                    {favoriteProducts().map((product) => (
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src={product.image} alt={product.name} />
-                                <button
-                                    class={`favorite-button ${product.isFavorite ? 'active' : ''}`}
-                                    onClick={() => toggleFavorite(product.id)}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill={product.isFavorite ? "#FF4848" : "none"} xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                                            stroke={product.isFavorite ? "#FF4848" : "currentColor"}
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="product-info">
-                                <div class="product-category">{product.category}</div>
-                                <div class="product-name">{product.name}</div>
-                                <div class="product-price">{formatPrice(product.price)}</div>
-                                <div class="product-colors">
-                                    {product.colors.map((color) => (
-                                        <div class="color-circle" style={{ "background-color": color }}></div>
-                                    ))}
+                {/* Product Grid */}
+                <Show when={!loading() && !error()}>
+                    <div class="products-grid-fav">
+                        <Show
+                            when={favoriteProducts().length > 0}
+                            fallback={
+                                <div class="status-message empty">
+                                    {searchQuery()
+                                        ? "No matching favorites found"
+                                        : "You haven't added any favorites yet"}
                                 </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </main><img src={befooter} alt="Banner" class="full-width-image" />
+                            }
+                        >
+                            {favoriteProducts().map((product) => (
+                                <div
+                                    class="product-card-fav"
+                                    id={`product-${product.id}`}
+                                    onClick={() => goToProduct(product.id)}
+                                >
+                                    <div class="product-image-fav">
+                                        <img
+                                            src={formatImageUrl(product.default_image)}
+                                            alt={product.name}
+                                            onError={(e) => {
+                                                e.currentTarget.src = '/fallback-image.jpg';
+                                                e.currentTarget.onerror = null;
+                                            }}
+                                        />
+                                    </div>
+                                    <div class="product-info-fav">
+                                        <div class="product-category-fav">{product.category}</div>
+                                        <div
+                                            class="product-name-fav"
+                                            innerHTML={highlightSearchMatch(product.name)}
+                                        />
+                                        <div class="product-price-fav">{product.price}</div>
+                                    </div>
+                                    <button
+                                        class="favorite-button active"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleFavorite(product.id);
+                                        }}
+                                        aria-label="Remove from favorites"
+                                    >
+                                        <img
+                                            src={heartfull}
+                                            alt="Remove from favorites"
+                                            style={{
+                                                width: "20px",
+                                                height: "20px",
+                                                "object-fit": "contain"
+                                            }}
+                                        />
+                                    </button>
+                                </div>
+                            ))}
+                        </Show>
+                    </div>
+                </Show>
+            </main>
+
+            <img src={befooter} alt="Banner" class="full-width-image" />
 
             {/* Footer */}
             <footer>
@@ -207,10 +332,10 @@ export default function FavoritesPage() {
                     <div class="link-column">
                         <h4>Theyy Wearr.</h4>
                         <ul>
-                            <li><a href="#">Home</a></li>
-                            <li><a href="#">Product</a></li>
-                            <li><a href="#">About Us</a></li>
-                            <li><a href="#">Blog</a></li>
+                            <li><a onClick={goToHome}>Home</a></li>
+                            <li><a onClick={() => navigateWithUserId("/products")}>Product</a></li>
+                            <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                            <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                         </ul>
                     </div>
                     <div class="link-column">
@@ -250,7 +375,6 @@ export default function FavoritesPage() {
                         <span>English</span>
                     </div>
                 </div>
-
             </footer>
         </div>
     );
