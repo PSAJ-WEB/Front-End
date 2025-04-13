@@ -42,6 +42,7 @@ const ProductPage = () => {
   const [error, setError] = createSignal<string | null>(null);
   const [products, setProducts] = createSignal<Product[]>([]);
   const [loading, setLoading] = createSignal(true);
+  const [totalFavorites, setTotalFavorites] = createSignal(0);
   // Frontend code to fetch products
   const fetchProducts = async (search = "") => {
     try {
@@ -123,11 +124,12 @@ const ProductPage = () => {
     if (userId) {
       fetchUserProfile();
       fetchOnlineUsers();
+      fetchFavoriteCount();
       updateUserActivity();
 
       // Dapatkan produk yang sudah dilike oleh user
       try {
-        const countRes = await fetch(`http://127.0.0.1:8080/user/${userId}/likes/count`);
+        const countRes = await fetch(`http://127.0.0.1:8080/user/${userId}/likes`);
         if (countRes.ok) {
           const countData = await countRes.json();
           setFavoriteCount(countData.count || 0);
@@ -227,7 +229,26 @@ const ProductPage = () => {
       navigate(path);
     }
   };
-
+  const fetchFavoriteCount = async () => {
+    const fetchFavoriteCount = async () => {
+      if (!userId) return;
+      
+      try {
+        const response = await fetch(`http://127.0.0.1:8080/user/${userId}/likes`);
+        if (response.ok) {
+          const data = await response.json();
+          // Handle both possible response formats
+          if (Array.isArray(data)) {
+            setTotalFavorites(data.length);
+          } else if (typeof data.count !== 'undefined') {
+            setTotalFavorites(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching favorite count:', error);
+      }
+    };
+  }
   // Helper function to convert color names to hex codes
   const getColorCode = (colorName) => {
     const colorMap = {
@@ -289,6 +310,7 @@ const ProductPage = () => {
     fetchProducts();
     if (userId) {
       fetchUserProfile();
+      fetchFavoriteCount();
       fetchOnlineUsers();
       updateUserActivity();
 
@@ -414,6 +436,7 @@ const ProductPage = () => {
           } : product
         )
       );
+      fetchFavoriteCount();
       setFavoriteCount(prev => data.is_liked ? prev + 1 : Math.max(0, prev - 1));
     } catch (error) {
       console.error("Error toggling like:", error);
@@ -422,52 +445,6 @@ const ProductPage = () => {
       setIsLoading(false);
     }
   };
-  // Fetch data produk
-  // onMount(async () => {
-  //   // Fetch profile image jika ada userId
-  //   if (userId) {
-  //     try {
-  //       const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
-  //       if (response.ok) {
-  //         const data = await response.json();
-  //         if (data.img) {
-  //           setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching profile:', error);
-  //     }
-  //   }
-
-  //   // Fetch products
-  //   try {
-  //     const [productsRes, colorsRes] = await Promise.all([
-  //       fetch('http://127.0.0.1:8080/api/products'),
-  //       fetch('http://127.0.0.1:8080/api/product-colors') // Endpoint baru untuk semua colors
-  //     ]);
-
-  //     if (!productsRes.ok || !colorsRes.ok) throw new Error("Failed to fetch");
-
-  //     const productsData = await productsRes.json();
-  //     const colorsData = await colorsRes.json();
-
-  //     // Gabungkan data
-  //     const mergedProducts = productsData.map((product: any) => {
-  //       const productColors = colorsData.filter((c: any) => c.product_id === product.id);
-  //       return transformProductData({
-  //         ...product,
-  //         colors: productColors
-  //       });
-  //     });
-
-  //     setProducts(mergedProducts);
-  //   } catch (error) {
-  //     console.error("Fetch error:", error);
-  //     // Tambahkan state error untuk ditampilkan di UI
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // });
 
   const goToProductDetail = (productId: number) => {
     if (userId) {
@@ -498,6 +475,7 @@ const ProductPage = () => {
   };
 
 
+
   const [matchedProductId, setMatchedProductId] = createSignal<number | null>(null);
 
   return (
@@ -519,11 +497,11 @@ const ProductPage = () => {
           <div class="favorites-indicator" onClick={goToFavoritePage}>
             <img
               src={clicked() ? heartfull : heart}
-              alt="Favorites"
+              alt="heart"
               class="favorites-icon"
             />
-            <Show when={favoriteCount() > 0}>
-              <span class="favorites-badge">{favoriteCount()}</span>
+            <Show when={totalFavorites() > 0}>
+              <span class="favorites-badge">{totalFavorites()}</span>
             </Show>
           </div>
           <button class="dash-cart-btn" onClick={goToCart}>
