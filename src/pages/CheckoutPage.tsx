@@ -1,5 +1,7 @@
 import { createSignal } from 'solid-js';
 import styles from './CheckoutPage.module.css';
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
@@ -13,6 +15,13 @@ import logoqris from '../img/logoqris.png';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
+
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
+    };
 
     // Fungsi untuk navigasi ke halaman Cart
     const goToCart = () => {
@@ -61,6 +70,12 @@ const CheckoutPage = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
@@ -88,7 +103,7 @@ const CheckoutPage = () => {
                 </section>
 
                 <section class={styles.section}>
-                <h2 class={styles.sectionTitle}>Payment Method</h2> 
+                    <h2 class={styles.sectionTitle}>Payment Method</h2>
                     <div class={styles.paymentMethod}>
                         <div class={styles.paymentOption}>
                             <img src={logoqris} alt="QRIS" class={styles.paymentLogo} />

@@ -2,6 +2,8 @@ import { Component, onMount, createSignal } from 'solid-js';
 import { useNavigate } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import styles from './blogpage25fashion(5).module.css';
 import cartIcon from '../img/Tote.svg';
@@ -35,7 +37,7 @@ const FashionBlogPage5: Component = () => {
       handleNavigation(pages[previousPage - 1].path);
     }
   };
-  
+
   const goToNextPage = () => {
     const currentPage = activePage();
     if (currentPage === 4) {
@@ -65,6 +67,13 @@ const FashionBlogPage5: Component = () => {
     onCleanup(() => scrollToTop());
   });
 
+  const [clicked, setClicked] = createSignal(false);
+
+  const goToFavoritePage = () => {
+    setClicked(true);
+    navigate("/favorite");
+  };
+
   // Function to navigate to Cart
   const goToCart = () => {
     navigate("/cart");
@@ -90,9 +99,16 @@ const FashionBlogPage5: Component = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
+          <button class="fav" onClick={goToFavoritePage}>
+            <img
+              src={clicked() ? heartfull : heart}
+              alt="heart"
+            />
+          </button>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
+          {/* Tombol Account dengan Navigasi */}
           <button class="dash-account-btn" onClick={goToAccount}>
             <img src={accountIcon} alt="Account" />
           </button>
@@ -115,8 +131,7 @@ const FashionBlogPage5: Component = () => {
       {/* Blog Content */}
       <article class={styles.blogPost}>
         <h1>5 Fashion Tips to Instantly Elevate Your Look</h1>
-        <div class={styles.metadata}>March 03, 2025 👁️ 5 mins read</div>
-        
+       
         <p>Want to level up your style effortlessly? Fashion is more than just clothes—it's about confidence, attitude, and knowing how to put the right pieces together. In this article, we'll explore five expert-approved fashion tips that will help you transform your everyday outfits into stunning, head-turning ensembles. From understanding color coordination to choosing the right accessories, these simple yet effective tricks will make a significant difference in your personal style.</p>
 
         <section class={styles.section}>
@@ -177,7 +192,7 @@ const FashionBlogPage5: Component = () => {
             <li>Maintain Clean & Well-Groomed Nails – Even without polish, neat nails elevate your look.</li>
           </ol>
           <p>Example: A simple turtleneck and jeans look even more refined when paired with well-styled hair and a fresh, clean scent.</p>
-          
+
           <p>Dressing well is a blend of art and strategy. By applying a versatile wardrobe, focusing on quality over quantity, sticking with timeless styles, watching the right hemlines, and paying attention to personal grooming, you can elevate your look in any setting.</p>
         </section>
 
@@ -209,7 +224,7 @@ const FashionBlogPage5: Component = () => {
       </article>
 
       <img src={befooter} alt="Banner" class="full-width-image" />
-      
+
       {/* Footer */}
       <footer>
         <div class="footer-top">

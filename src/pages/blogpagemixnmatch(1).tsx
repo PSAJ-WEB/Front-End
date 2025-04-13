@@ -2,6 +2,8 @@ import { Component, onMount, createSignal } from 'solid-js';
 import { useNavigate } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import styles from './blogpagemixnmatch(1).module.css';
 import cartIcon from '../img/Tote.svg';
@@ -32,7 +34,7 @@ const BlogPageMixnMatch1: Component = () => {
       handleNavigation(pages[previousPage - 1].path);
     }
   };
-  
+
   const goToNextPage = () => {
     const currentPage = activePage();
     if (currentPage === 4) {
@@ -60,6 +62,13 @@ const BlogPageMixnMatch1: Component = () => {
   });
   const navigate = useNavigate();
 
+  const [clicked, setClicked] = createSignal(false);
+
+  const goToFavoritePage = () => {
+    setClicked(true);
+    navigate("/favorite");
+  };
+
   // Fungsi untuk navigasi ke halaman Cart
   const goToCart = () => {
     navigate("/cart");
@@ -84,6 +93,12 @@ const BlogPageMixnMatch1: Component = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
+          <button class="fav" onClick={goToFavoritePage}>
+            <img
+              src={clicked() ? heartfull : heart}
+              alt="heart"
+            />
+          </button>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
@@ -113,7 +128,6 @@ const BlogPageMixnMatch1: Component = () => {
       {/* Blog Content */}
       <article class={styles.blogPost}>
         <h1>Mix & Match: The Art of Pairing Bags & Outfits</h1>
-        <div class={styles.metadata}>September 12, 2025 👁️ 3 mins read</div>
         <p>A great outfit isn’t complete without the perfect bag. But how do you choose the right one? Whether you’re going for a chic, casual, or elegant look, the way you pair your bag with your outfit can elevate your style effortlessly. This article will guide you through the essentials of bag-outfit coordination, including color harmony, texture balance, and occasion-based selections. Learn how to make a statement with the perfect mix-and-match combinations!</p>
 
         <section class={styles.section2}>
@@ -123,7 +137,7 @@ const BlogPageMixnMatch1: Component = () => {
           <ul class="numbered-list-2">
             <li>Monochromatic Colors: Matching your bag and outfit in similar shades, like an all-white outfit with a cream handbag, creates a refined and elegant look.</li>
             <li>Contrasting Colors: Pairing colors that are opposite on the color wheel, such as a red dress with an emerald green bag, makes a bold statement.</li>
-            <li>Neutral Colors: Neutral-toned bags (black, white, beige, gray) are highly versatile and can complement a wide range of outfits effortlessly.</li>          
+            <li>Neutral Colors: Neutral-toned bags (black, white, beige, gray) are highly versatile and can complement a wide range of outfits effortlessly.</li>
           </ul>
         </section>
 

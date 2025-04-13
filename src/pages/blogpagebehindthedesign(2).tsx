@@ -2,6 +2,8 @@ import { Component, onMount, createSignal } from 'solid-js';
 import { useNavigate } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import styles from './blogpagebehindthedesign(2).module.css';
 import cartIcon from '../img/Tote.svg';
@@ -33,7 +35,7 @@ const BehindtheDesign2: Component = () => {
       handleNavigation(pages[previousPage - 1].path);
     }
   };
-  
+
   const goToNextPage = () => {
     const currentPage = activePage();
     if (currentPage === 4) {
@@ -61,6 +63,13 @@ const BehindtheDesign2: Component = () => {
   });
   const navigate = useNavigate();
 
+  const [clicked, setClicked] = createSignal(false);
+
+  const goToFavoritePage = () => {
+    setClicked(true);
+    navigate("/favorite");
+  };
+
   // Fungsi untuk navigasi ke halaman Cart
   const goToCart = () => {
     navigate("/cart");
@@ -85,6 +94,12 @@ const BehindtheDesign2: Component = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
+          <button class="fav" onClick={goToFavoritePage}>
+            <img
+              src={clicked() ? heartfull : heart}
+              alt="heart"
+            />
+          </button>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
@@ -114,7 +129,6 @@ const BehindtheDesign2: Component = () => {
       {/* Blog Content */}
       <article class={styles.blogPost}>
         <h1>Behind the Design: The Inspiration Behind Our Collection</h1>
-        <div class={styles.metadata}>September 12, 2025 👁️ 3 mins read</div>
         <p>Every piece in our collection has a story. From concept to creation, our design process is driven by inspiration from global fashion trends, cultural influences, and timeless style. In this exclusive behind-the-scenes look, we’ll walk you through the journey of how our latest collection came to life—starting from mood boards, fabric selection, to the final product. Get an insider’s perspective on the creative process, and discover the passion behind every stitch and detail.</p>
 
         <section class={styles.section2}>
@@ -132,9 +146,9 @@ const BehindtheDesign2: Component = () => {
           <ul class="numbered-list-2">
             <li>Luxurious Silks – Sourced from heritage silk farms, silk is prized for its fluid drape and opulent sheen, making it a staple for eveningwear and elegant silhouettes.</li>
             <li>Organic Cottons – Breathable, hypoallergenic, and highly versatile, our organic cotton is sourced from certified sustainable farms, ensuring comfort and eco-conscious production.</li>
-            <li>High-Performance Wool – Whether it’s fine Merino wool for suiting or cashmere for winter layering, we seek out ethically sourced wool that balances warmth with breathability.</li>          
-            <li>Innovative Sustainable Fabrics – From recycled polyester made from ocean plastics to Tencel and bamboo fibers that require minimal water and energy, we prioritize cutting-edge materials that align with modern sustainability standards.</li>          
-            <li>Heritage & Handwoven Textiles – We celebrate traditional craftsmanship by integrating handwoven textiles, such as jacquards, ikats, and artisanal embroidery, adding authenticity and cultural depth to our designs.</li>          
+            <li>High-Performance Wool – Whether it’s fine Merino wool for suiting or cashmere for winter layering, we seek out ethically sourced wool that balances warmth with breathability.</li>
+            <li>Innovative Sustainable Fabrics – From recycled polyester made from ocean plastics to Tencel and bamboo fibers that require minimal water and energy, we prioritize cutting-edge materials that align with modern sustainability standards.</li>
+            <li>Heritage & Handwoven Textiles – We celebrate traditional craftsmanship by integrating handwoven textiles, such as jacquards, ikats, and artisanal embroidery, adding authenticity and cultural depth to our designs.</li>
           </ul>
         </section>
 
@@ -144,9 +158,9 @@ const BehindtheDesign2: Component = () => {
           <ul class="numbered-list-2">
             <li>Durability & Strength – A garment should stand the test of time, resisting wear and tear while maintaining its structure and beauty.</li>
             <li>Texture & Comfort – The way a fabric feels against the skin is paramount. We assess whether a textile is soft, breathable, or structured enough to serve its intended purpose.</li>
-            <li>Drape & Fluidity – Some designs require fabrics that flow effortlessly, while others demand materials with architectural stiffness. The drape of a fabric significantly influences the silhouette of the final piece.</li>          
-            <li>Color Absorption & Dyeing Techniques – The way a fabric interacts with dyes affects the richness and longevity of color. We explore natural and low-impact dyeing processes that enhance vibrancy without harming the environment.</li>          
-            <li>Seasonal Suitability – The weight and insulating properties of a fabric determine its placement within a collection. Lightweight linens and airy cottons dominate spring/summer lines, while wools, velvets, and structured knits define autumn/winter collections.</li>          
+            <li>Drape & Fluidity – Some designs require fabrics that flow effortlessly, while others demand materials with architectural stiffness. The drape of a fabric significantly influences the silhouette of the final piece.</li>
+            <li>Color Absorption & Dyeing Techniques – The way a fabric interacts with dyes affects the richness and longevity of color. We explore natural and low-impact dyeing processes that enhance vibrancy without harming the environment.</li>
+            <li>Seasonal Suitability – The weight and insulating properties of a fabric determine its placement within a collection. Lightweight linens and airy cottons dominate spring/summer lines, while wools, velvets, and structured knits define autumn/winter collections.</li>
           </ul>
         </section>
 

@@ -32,10 +32,10 @@ export default function CartPage() {
     const [selectAll, setSelectAll] = createSignal(false);
     const [selectedItems, setSelectedItems] = createSignal<number[]>([]);
     const [totalPrice, setTotalPrice] = createSignal(0);
-     const [profileImage, setProfileImage] = createSignal<string | null>(null);
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const params = useParams();
     const navigate = useNavigate();
-    
+
     const [error, setError] = createSignal<string | null>(null);
     const [clicked, setClicked] = createSignal(false);
 
@@ -49,7 +49,6 @@ export default function CartPage() {
             navigate(path);
         }
     };
-    
 
     const goToDashboard = () => navigateWithUserId("/");
     const goToCart = () => navigateWithUserId("/cart");
@@ -227,6 +226,13 @@ export default function CartPage() {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
+
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>

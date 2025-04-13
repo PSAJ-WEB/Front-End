@@ -2,6 +2,8 @@ import { Component, onMount, createSignal } from 'solid-js';
 import { useNavigate } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import styles from './blogpagebehindthedesign(3).module.css';
 import cartIcon from '../img/Tote.svg';
@@ -33,7 +35,7 @@ const BehindtheDesign3: Component = () => {
       handleNavigation(pages[previousPage - 1].path);
     }
   };
-  
+
   const goToNextPage = () => {
     const currentPage = activePage();
     if (currentPage === 4) {
@@ -61,6 +63,13 @@ const BehindtheDesign3: Component = () => {
   });
   const navigate = useNavigate();
 
+  const [clicked, setClicked] = createSignal(false);
+
+  const goToFavoritePage = () => {
+    setClicked(true);
+    navigate("/favorite");
+  };
+
   // Fungsi untuk navigasi ke halaman Cart
   const goToCart = () => {
     navigate("/cart");
@@ -85,6 +94,12 @@ const BehindtheDesign3: Component = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
+          <button class="fav" onClick={goToFavoritePage}>
+            <img
+              src={clicked() ? heartfull : heart}
+              alt="heart"
+            />
+          </button>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
@@ -114,7 +129,6 @@ const BehindtheDesign3: Component = () => {
       {/* Blog Content */}
       <article class={styles.blogPost}>
         <h1>Behind the Design: The Inspiration Behind Our Collection</h1>
-        <div class={styles.metadata}>September 12, 2025 👁️ 3 mins read</div>
         <p>Every piece in our collection has a story. From concept to creation, our design process is driven by inspiration from global fashion trends, cultural influences, and timeless style. In this exclusive behind-the-scenes look, we’ll walk you through the journey of how our latest collection came to life—starting from mood boards, fabric selection, to the final product. Get an insider’s perspective on the creative process, and discover the passion behind every stitch and detail.</p>
 
         <section class={styles.section2}>
@@ -139,8 +153,8 @@ const BehindtheDesign3: Component = () => {
           <p>Each prototype is evaluated on multiple factors, including:</p>
           <ul class="numbered-list-2">
             <li>Proportion and silhouette: Ensuring that the design remains true to the original sketches while adapting to real-world movement.</li>
-            <li>Fabric behavior: Observing how the material drapes, stretches, and reacts to different conditions, such as washing and prolonged wear.</li>          
-            <li>Construction integrity: Examining the durability of seams, fastenings, embellishments, and intricate details.</li>          
+            <li>Fabric behavior: Observing how the material drapes, stretches, and reacts to different conditions, such as washing and prolonged wear.</li>
+            <li>Construction integrity: Examining the durability of seams, fastenings, embellishments, and intricate details.</li>
             <li>Fit and comfort: Conducting multiple fit tests on different body types to guarantee an inclusive and flattering shape.</li>
           </ul>
           <p>The prototyping phase is highly iterative, often requiring several rounds of refinement. Adjustments are made to correct any inconsistencies in structure, improve garment proportions, and enhance overall wearability. Any necessary modifications—whether it’s altering a seam placement, adjusting sleeve length, or redefining a fabric’s layering effect—are meticulously implemented. Once the prototype has been refined to perfection, it undergoes a series of rigorous quality checks before receiving approval for final production. This step ensures that the design meets our high standards of craftsmanship, durability, and functionality.</p>

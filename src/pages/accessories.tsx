@@ -1,5 +1,5 @@
-import { createSignal, createEffect } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { createSignal, createEffect, Show } from "solid-js";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
@@ -63,7 +63,21 @@ const Accessories = () => {
         setProducts(updatedProducts);
     };
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+    const userId = searchParams.user_id;
     const [searchQuery, setSearchQuery] = createSignal("");
+    const [showAuthPopup, setShowAuthPopup] = createSignal(false);
+    const [onlineUsers, setOnlineUsers] = createSignal([]);
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
+
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
+    const [clicked, setClicked] = createSignal(false);
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigateWithUserId("/favorite");
+    };
+
     const [products, setProducts] = createSignal([
         {
             name: "Lunettes De Soleil M",
@@ -133,6 +147,14 @@ const Accessories = () => {
         },
     ]);
 
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+        } else {
+            navigate(path);
+        }
+    };
     // Fungsi untuk menyorot huruf yang cocok
     const highlightText = (text, query) => {
         if (!query) return text;
@@ -183,8 +205,8 @@ const Accessories = () => {
         setProducts(updatedProducts);
     };
 
-    const goToCart = () => navigate("/cart");
-    const goToAccount = () => navigate("/account");
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToAccount = () => navigateWithUserId("/account");
 
     return (
         <div class="landing-page">
@@ -195,19 +217,41 @@ const Accessories = () => {
                 </div>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products" class="active">Products</a></li>
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/blogpage">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} class="active">Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <div class="favorites-indicator" onClick={goToFavoritePage}>
+                        <img
+                            src={heart}
+                            alt="Favorites"
+                            class="favorites-icon"
+                        />
+                        <Show when={favoriteCount() > 0}>
+                            <span class="favorites-badge">{favoriteCount()}</span>
+                        </Show>
+                    </div>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
-                    <button class="dash-account-btn" onClick={goToAccount}>
-                        <img src={accountIcon} alt="Account" />
-                    </button>
+                    <div class="dash-account-btn" onClick={goToAccount}>
+                        <img
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover'
+                            }}
+                        />
+                        {onlineUsers().some(u => u.id === userId) && (
+                            <div class="online-status-dot"></div>
+                        )}
+                    </div>
                 </div>
             </header>
 

@@ -4,6 +4,8 @@ import styles from './account.module.css';
 import accountIcon from '../img/UserCircle.svg';
 import { useNavigate } from "@solidjs/router";
 import logo from '../img/logo.png';
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import profile from '../img/UserCircle (2).svg';
 import logowhite from '../img/logowhite.png';
 import befooter from '../img/befooter.png';
@@ -43,6 +45,13 @@ const Account: Component = () => {
                 'Content-Type': 'application/json',
             },
         }).catch(console.error);
+    };
+
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
     };
 
     const goToCart = () => {
@@ -209,6 +218,12 @@ const Account: Component = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>

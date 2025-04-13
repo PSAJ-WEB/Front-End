@@ -1,4 +1,4 @@
-import { createSignal, createEffect, onMount } from "solid-js";
+import { createSignal, createEffect, onMount, Show } from "solid-js";
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
@@ -33,11 +33,21 @@ const Handbags = () => {
     const [searchParams] = useSearchParams();
     const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
     const userId = searchParams.user_id;
+    const [showAuthPopup, setShowAuthPopup] = createSignal(false);
+    const [onlineUsers, setOnlineUsers] = createSignal([]);
     const [products, setProducts] = createSignal<Product[]>([]);
     const [isLoading, setIsLoading] = createSignal(false);
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const [searchQuery, setSearchQuery] = createSignal("");
     const navigate = useNavigate();
+
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
+    const [clicked, setClicked] = createSignal(false);
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigateWithUserId("/favorite");
+    };
+    
 
     const formatImageUrl = (imagePath: string) => {
         if (!imagePath) return '/fallback-image.jpg';
@@ -263,10 +273,20 @@ const Handbags = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                <div class="favorites-indicator" onClick={goToFavoritePage}>
+                        <img
+                            src={heart}
+                            alt="Favorites"
+                            class="favorites-icon"
+                        />
+                        <Show when={favoriteCount() > 0}>
+                            <span class="favorites-badge">{favoriteCount()}</span>
+                        </Show>
+                    </div>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
-                    <button class="dash-account-btn" onClick={goToAccount}>
+                    <div class="dash-account-btn" onClick={goToAccount}>
                         <img
                             src={profileImage() || accountIcon}
                             alt="Account"
@@ -277,7 +297,10 @@ const Handbags = () => {
                                 "object-fit": 'cover'
                             }}
                         />
-                    </button>
+                        {onlineUsers().some(u => u.id === userId) && (
+                            <div class="online-status-dot"></div>
+                        )}
+                    </div>
                 </div>
             </header>
 

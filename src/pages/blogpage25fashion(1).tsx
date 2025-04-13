@@ -2,6 +2,8 @@ import { Component, onMount, createSignal } from 'solid-js';
 import { useNavigate } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import styles from './blogpage25fashion(1).module.css';
 import cartIcon from '../img/Tote.svg';
@@ -12,41 +14,41 @@ import accountIcon from '../img/UserCircle (2).svg'
 
 const BlogPage25Fashion1: Component = () => {
   const [activePage, setActivePage] = createSignal(1); // Misalnya, halaman aktif saat ini adalah 2
-  
-    // Data halaman dan path-nya
-    const pages = [
-      { number: 1, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/1" },
-      { number: 2, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/2" },
-      { number: 3, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/3" },
-      { number: 4, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/4" },
-      { number: 5, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/5" },
-    ];
-    // Fungsi untuk navigasi ke halaman sebelumnya
-    const goToPreviousPage = () => {
-      const currentPage = activePage();
-      if (currentPage === 1) {
-        // Jika di halaman 1, navigasi ke /blogpage
-        handleNavigation("/blogpage");
-      } else {
-        // Jika bukan halaman 1, navigasi ke halaman sebelumnya
-        const previousPage = currentPage - 1;
-        setActivePage(previousPage);
-        handleNavigation(pages[previousPage - 1].path);
-      }
-    };
-    
-    const goToNextPage = () => {
-      const currentPage = activePage();
-      if (currentPage === 4) {
-        // Jika di halaman 4, navigasi ke /blogpage
-        handleNavigation("/blogpage");
-      } else {
-        // Jika bukan halaman 4, navigasi ke halaman berikutnya
-        const nextPage = currentPage + 1;
-        setActivePage(nextPage);
-        handleNavigation(pages[nextPage - 1].path);
-      }
-    };
+
+  // Data halaman dan path-nya
+  const pages = [
+    { number: 1, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/1" },
+    { number: 2, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/2" },
+    { number: 3, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/3" },
+    { number: 4, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/4" },
+    { number: 5, path: "/blogpage/25-fashion-tips-to-instantly-elevate-your-look/5" },
+  ];
+  // Fungsi untuk navigasi ke halaman sebelumnya
+  const goToPreviousPage = () => {
+    const currentPage = activePage();
+    if (currentPage === 1) {
+      // Jika di halaman 1, navigasi ke /blogpage
+      handleNavigation("/blogpage");
+    } else {
+      // Jika bukan halaman 1, navigasi ke halaman sebelumnya
+      const previousPage = currentPage - 1;
+      setActivePage(previousPage);
+      handleNavigation(pages[previousPage - 1].path);
+    }
+  };
+
+  const goToNextPage = () => {
+    const currentPage = activePage();
+    if (currentPage === 4) {
+      // Jika di halaman 4, navigasi ke /blogpage
+      handleNavigation("/blogpage");
+    } else {
+      // Jika bukan halaman 4, navigasi ke halaman berikutnya
+      const nextPage = currentPage + 1;
+      setActivePage(nextPage);
+      handleNavigation(pages[nextPage - 1].path);
+    }
+  };
   const handleNavigation = (path) => {
     navigate(path); // Navigasi ke path yang diberikan
   };
@@ -61,6 +63,13 @@ const BlogPage25Fashion1: Component = () => {
     onCleanup(() => scrollToTop()); // Pastikan reset scroll saat unmount halaman
   });
   const navigate = useNavigate();
+
+  const [clicked, setClicked] = createSignal(false);
+
+  const goToFavoritePage = () => {
+    setClicked(true);
+    navigate("/favorite");
+  };
 
   // Fungsi untuk navigasi ke halaman Cart
   const goToCart = () => {
@@ -86,6 +95,12 @@ const BlogPage25Fashion1: Component = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
+          <button class="fav" onClick={goToFavoritePage}>
+            <img
+              src={clicked() ? heartfull : heart}
+              alt="heart"
+            />
+          </button>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
@@ -116,7 +131,6 @@ const BlogPage25Fashion1: Component = () => {
       <article class={styles.blogPost}>
         <p>Want to level up your style effortlessly? Fashion is more than just clothes—it’s about confidence, attitude, and knowing how to put the right pieces together. In this article, we’ll explore five expert-approved fashion tips that will help you transform your everyday outfits into stunning, head-turning ensembles. From understanding color coordination to choosing the right accessories, these simple yet effective tricks will make a significant difference in your personal style.</p>
         <h1>25 Fashion Tips to Instantly Elevate Your Look</h1>
-        <div class={styles.metadata}>September 12, 2025 👁️ 3 mins read</div>
 
         <section class={styles.section}>
           <h2>1. Master the Power of Color Coordination</h2>
