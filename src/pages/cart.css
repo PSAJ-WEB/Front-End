@@ -17,12 +17,20 @@
   padding: 40px 0;
   margin-left: 50px;
   margin-right: 50px;
+  margin-top: 50px;
 }
 
+/* Tambahkan ini untuk page-title */
 .page-title {
   font-size: 28px;
   font-weight: 600;
-  margin-bottom: 32px;
+  margin-bottom: 50px; /* Memberikan jarak bawah */
+  margin-top: 50px
+}
+
+/* Perbaiki selector untuk empty cart message */
+.empty-cart-message {
+  padding: 20px 0 40px !important;
 }
 
 /* Cart Items Styles */

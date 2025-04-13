@@ -1,8 +1,15 @@
 import { createSignal, createEffect, Show } from "solid-js";
 import { useNavigate, useParams } from "@solidjs/router";
+import { useSearchParams } from '@solidjs/router';
 import { formatPrice } from "../pages/formatprice";
+import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
+import befooter from '../img/befooter.png';
+import cartIcon from '../img/Tote.svg';
+import accountIcon from '../img/UserCircle (2).svg';
 
 
 interface CartItem {
@@ -17,13 +24,59 @@ interface CartItem {
 }
 
 export default function CartPage() {
+    const [searchParams] = useSearchParams();
     const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+    const userId = searchParams.user_id;
     const [loading, setLoading] = createSignal(true);
     const [selectAll, setSelectAll] = createSignal(false);
     const [selectedItems, setSelectedItems] = createSignal<number[]>([]);
     const [totalPrice, setTotalPrice] = createSignal(0);
+     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const params = useParams();
     const navigate = useNavigate();
+    
+    const [error, setError] = createSignal<string | null>(null);
+    const [clicked, setClicked] = createSignal(false);
+
+    // Navigation functions with user ID
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+            updateUserActivity(id);
+        } else {
+            navigate(path);
+        }
+    };
+    
+
+    const goToDashboard = () => navigateWithUserId("/");
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToAccount = () => navigateWithUserId("/account");
+    const goToProducts = () => navigateWithUserId("/products");
+    const goToAboutUs = () => navigateWithUserId("/about-us");
+    const goToBlog = () => navigateWithUserId("/blogpage");
+    const goToHandbags = () => navigateWithUserId("/bags");
+    const goToClothes = () => navigateWithUserId("/clothes");
+    const goToAccessories = () => navigateWithUserId("/accessories");
+    const goToViewMore = () => navigateWithUserId("/viewmore");
+    const goToReadMore = (slug: string) => navigateWithUserId(`/blogpage/readmore/${slug}`);
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigateWithUserId("/favorite");
+    };
+
+    const updateUserActivity = async (userId: string) => {
+        try {
+            await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+        } catch (error) {
+            console.error('Failed to update activity:', error);
+        }
+    };
 
     // Fetch cart items from backend
     createEffect(async () => {
@@ -160,12 +213,43 @@ export default function CartPage() {
     return (
         <div class="Container">
             {/* Your existing header */}
+            {/* Header */}
+            <header>
+                <div class="logo">
+                    <img src={logo} alt="Logo" />
+                </div>
+                <nav class="navbar">
+                    <ul>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} class="active">Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
+                    </ul>
+                </nav>
+                <div class="dash-auth-buttons">
+                    <button class="dash-cart-btn" onClick={goToCart}>
+                        <img src={cartIcon} alt="Cart" />
+                    </button>
+                    <button class="dash-account-btn" onClick={goToAccount}>
+                        <img
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover'
+                            }}
+                        />
+                    </button>
+                </div>
+            </header>
 
             <main class="main-content">
                 <h1 class="page-title">Shopping Cart</h1>
 
                 <Show when={!loading()} fallback={<div>Loading cart...</div>}>
-                    <Show when={cartItems().length > 0} fallback={<div>Your cart is empty</div>}>
+                    <Show when={cartItems().length > 0} fallback={<div class="empty-cart-message">Your cart is empty</div>}>
                         <div class="cart-items">
                             {cartItems().map((item) => (
                                 <div class="cart-item">
