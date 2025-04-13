@@ -1,5 +1,6 @@
 import { createSignal, onMount, For, Show, createEffect } from "solid-js";
 import { useParams, useNavigate, useSearchParams } from "@solidjs/router";
+import star from '../img/Star.svg';
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
@@ -34,7 +35,12 @@ const ProductPageDetail = () => {
     const userId = searchParams.user_id;
     const navigate = useNavigate();
     const productId = parseInt(params.id);
-
+    createEffect(() => {
+        // Update main image when color selection changes
+        if (product()) {
+            setMainImage(product()!.colors[selectedColorIndex()].image);
+        }
+    });
     const [product, setProduct] = createSignal<ProductDetail | null>(null);
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string | null>(null);
@@ -55,24 +61,66 @@ const ProductPageDetail = () => {
         try {
             setLoading(true);
             setError(null);
-            
-            const response = await fetch(`http://127.0.0.1:8080/api/products/${productId}`);
-            console.log("Raw response:", response); // Tambahkan ini
-            
-            const productData = await response.json();
-            console.log("Parsed data:", productData); // Tambahkan ini
-            
+
+            const url = userId
+                ? `http://127.0.0.1:8080/api/products/${productId}?user_id=${userId}`
+                : `http://127.0.0.1:8080/api/products/${productId}`;
+
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`Product error: ${response.status}`);
-            if (!productData) throw new Error("Empty response");
-            
-            // ... rest of your code
+
+            const productData = await response.json();
+
+            if (!productData.product) {
+                throw new Error("Product data not found in response");
+            }
+            const defaultImage = productData.product.default_image?.includes('http')
+                ? productData.product.default_image
+                : `http://127.0.0.1:8080/uploads/products/${productData.product.default_image}`;
+
+            setMainImage(defaultImage);
+
+            // Cari index warna yang sesuai dengan default_image
+            let defaultColorIndex = 0;
+            if (productData.colors && productData.colors.length > 0) {
+                const defaultImageName = productData.product.default_image?.split('/').pop();
+                defaultColorIndex = productData.colors.findIndex(
+                    (color: any) => color.image.includes(defaultImageName)
+                        ?? 0);
+            }
+
+            const productDetail: ProductDetail = {
+                id: productData.product.id,
+                name: productData.product.name,
+                category: productData.product.category,
+                price: productData.product.price,
+                default_image: productData.product.default_image?.includes('http')
+                    ? productData.product.default_image
+                    : `http://127.0.0.1:8080/uploads/products/${productData.product.default_image}`,
+                description: productData.product.description || "No description available",
+                rating: parseFloat(productData.product.rating) || 0,
+                sold: productData.product.sold || 0,
+                colors: productData.colors.map((color: any) => ({
+                    color: color.color,
+                    color_code: getColorCode(color.color),
+                    image: color.image?.includes('http')
+                        ? color.image
+                        : `http://127.0.0.1:8080/uploads/products/${color.image}`
+                })),
+                liked: productData.product.liked || false, // Gunakan nilai dari backend
+                likes_count: productData.product.likes_count || 0
+            };
+
+            setProduct(productDetail);
+            setSelectedColorIndex(defaultColorIndex); // Set index warna default
         } catch (err) {
-            console.error("Full error:", err); // Tambahkan ini
             setError(err.message);
+            console.error('Error fetching product details:', err);
         } finally {
             setLoading(false);
         }
     };
+
     const fetchUserProfile = async () => {
         if (!userId) return;
 
@@ -220,12 +268,38 @@ const ProductPageDetail = () => {
         }
     };
 
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
+    const fetchFavoriteCount = async () => {
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/likes`);
+            if (response.ok) {
+                const data = await response.json();
+                setFavoriteCount(data.count || 0);
+            }
+        } catch (error) {
+            console.error('Error fetching favorite count:', error);
+        }
+    };
     onMount(() => {
         fetchProductDetail();
-        if (userId) fetchUserProfile();
+        if (userId) {
+            fetchUserProfile();
+            fetchFavoriteCount();
+
+            // Tambahkan fetch untuk cek apakah produk ini sudah dilike user
+            fetch(`http://127.0.0.1:8080/user/${userId}/likes`)
+                .then(res => res.json())
+                .then(likedProducts => {
+                    const isLiked = likedProducts.some((p: any) => p.id === productId);
+                    setProduct(prev => prev ? { ...prev, liked: isLiked } : null);
+                })
+                .catch(console.error);
+        }
     });
     const [onlineUsers, setOnlineUsers] = createSignal<{ id: string }[]>([]);
-
+    const [mainImage, setMainImage] = createSignal<string>("");
 
     const [clicked, setClicked] = createSignal(false);
 
@@ -288,10 +362,10 @@ const ProductPageDetail = () => {
                     <div class="product-images">
                         <div class="main-image-detail">
                             <img
-                                src={product()!.colors[selectedColorIndex()].image || product()!.default_image}
+                                src={mainImage() || product()!.default_image}
                                 alt={product()!.name}
                                 onError={(e) => {
-                                    e.currentTarget.src = product()!.default_image || '/fallback-image.jpg';
+                                    e.currentTarget.src = '/fallback-image.jpg';
                                     e.currentTarget.onerror = null;
                                 }}
                             />
@@ -301,10 +375,13 @@ const ProductPageDetail = () => {
                                 {(color, index) => (
                                     <div
                                         class={`thumbnail ${index() === selectedColorIndex() ? 'active' : ''}`}
-                                        onClick={() => setSelectedColorIndex(index())}
+                                        onClick={() => {
+                                            setSelectedColorIndex(index());
+                                            setMainImage(color.image);
+                                        }}
                                     >
                                         <img
-                                            src={color.image || product()!.default_image}
+                                            src={color.image}
                                             alt={`${product()!.name} color ${color.color}`}
                                             onError={(e) => {
                                                 e.currentTarget.src = product()!.default_image || '/fallback-image.jpg';
@@ -318,17 +395,31 @@ const ProductPageDetail = () => {
                     </div>
 
                     <div class="product-info">
-                        <div class="category">{product()!.category}</div>   
+                        <div class="category">{product()!.category}</div>
                         <h1 class="product-name">{product()!.name}</h1>
 
                         <div class="rating">
+                            <img src={star} alt="Star" class="star-icon" />
                             <span class="stars">
                                 {"⭐".repeat(Math.floor(product()!.rating))}
                             </span>
                             <span class="rating-value">{product()!.rating.toFixed(1)}</span>
                             <span class="sold">{product()!.sold} sold</span>
-                        </div>
 
+                            <div
+                                class="heart-icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleLike();
+                                }}
+                                classList={{ 'loading': isLoading() }}
+                            >
+                                <img src={product()!.liked ? heartfull : heart} alt="Like" />
+                                {(product()!.likes_count ?? 0) > 0 && (
+                                    <span class="like-count">{product()!.likes_count}</span>
+                                )}
+                            </div>
+                        </div>
                         <div class="price-detail">{product()!.price}</div>
 
                         <div class="description">
@@ -379,20 +470,6 @@ const ProductPageDetail = () => {
                         <div class="action-buttons">
                             <button class="buy-now">Buy Now</button>
                             <button class="add-to-cart" onClick={addToCart}>Add to Cart</button>
-                        </div>
-
-                        <div
-                            class="heart-icon"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                toggleLike();
-                            }}
-                            classList={{ 'loading': isLoading() }}
-                        >
-                            <img src={product()!.liked ? heartfull : heart} alt="Like" />
-                            {(product()!.likes_count ?? 0) > 0 && (
-                                <span class="like-count">{product()!.likes_count}</span>
-                            )}
                         </div>
                     </div>
                 </section>
