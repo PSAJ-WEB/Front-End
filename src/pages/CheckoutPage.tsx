@@ -3,9 +3,13 @@ import styles from './CheckoutPage.module.css';
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
+<<<<<<< HEAD
+import { useNavigate, useSearchParams } from "@solidjs/router";
+=======
 import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
 import { useNavigate } from "@solidjs/router";
+>>>>>>> c9b33a21a5205dda27f3c00a9a8370f12142c011
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import { onCleanup, } from "solid-js";
@@ -42,6 +46,46 @@ const CheckoutPage = () => {
     // const orderId = searchParams.order_id;
     const navigate = useNavigate();
 
+<<<<<<< HEAD
+    interface CartItem {
+        id: number;
+        product_id: number;
+        product_name: string;
+        product_image: string | null;
+        color: string;
+        color_code: string;
+        price: string;
+        quantity: number;
+      }
+    
+      const [searchParams] = useSearchParams();
+      const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
+      const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+      const userId = searchParams.user_id;
+    
+      const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+          navigate(`${path}?user_id=${id}`);
+          updateUserActivity(id);
+        } else {
+          navigate(path);
+        }
+      };
+    
+      const updateUserActivity = async (userId: string) => {
+        try {
+          await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } catch (error) {
+          console.error('Failed to update activity:', error);
+        }
+      };
+
+    const [clicked, setClicked] = createSignal(false);
+=======
     const [address, setAddress] = createSignal<Address | null>(null);
     const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
@@ -51,6 +95,7 @@ const CheckoutPage = () => {
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string | null>(null);
     // const [clicked, setClicked] = createSignal(false);
+>>>>>>> c9b33a21a5205dda27f3c00a9a8370f12142c011
 
     // const goToFavoritePage = () => {
     //     setClicked(true);
@@ -366,9 +411,15 @@ const CheckoutPage = () => {
                 <nav class="navbar-blog">
                     <ul>
                         <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+<<<<<<< HEAD
                         <li><a onClick={() => navigateWithUserId("/products")}>Products</a></li>
                         <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
                         <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
+=======
+                        <li><a onClick={() => navigateWithUserId("/products")} >Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")} >About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")} >Blog</a></li>
+>>>>>>> 2e6c0d4f7f2116fcd00181a81d1656cc8a7cc5fa
                     </ul>
                 </nav>
 
