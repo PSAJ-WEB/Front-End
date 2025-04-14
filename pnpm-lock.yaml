@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@ag-grid-community/core':
+        specifier: ^32.3.5
+        version: 32.3.5
       '@amcharts/amcharts5':
-        specifier: ^5.11.1
-        version: 5.11.3
+        specifier: ^5.12.1
+        version: 5.12.1
+      '@amcharts/amcharts5-geodata':
+        specifier: ^5.1.4
+        version: 5.1.4
       '@mapbox/mapbox-gl-geocoder':
         specifier: ^5.0.3
         version: 5.0.3
@@ -57,12 +63,18 @@ importers:
 
 packages:
 
+  '@ag-grid-community/core@32.3.5':
+    resolution: {integrity: sha512-RGL3RyPCKC4R2fcG1gXdk7rs+CXig23wufTFJfbE46aQDxg941ww07G0cDS5Z5u/6btM9GJkxlwcR0JVEI003A==}
+
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
 
-  '@amcharts/amcharts5@5.11.3':
-    resolution: {integrity: sha512-c9w9O7UCWA0Ep9tQAVrA/5oiFYbI+Z3wVi+0PigMKfYMOk2kqyqh8S7nWNoJIBbXLl7yWK0JI2Nsf8ra+hBIQQ==}
+  '@amcharts/amcharts5-geodata@5.1.4':
+    resolution: {integrity: sha512-M3Rhaef675mHZ6gillSlDfu31ZNUgsaoLpYubRfGRKM7mb//vewtvv8q91zljhE1za5h5NnXmHXCQfmbVo5f9w==}
+
+  '@amcharts/amcharts5@5.12.1':
+    resolution: {integrity: sha512-OJmf53LxA7Gwr4Ny3cWU0JV/IbRn2nAFVUKNBQ9A0ALGYYHcxF0q2U+G44ISvGz7zO/vqOC3rS3nYTI4dmL3Cg==}
 
   '@ampproject/remapping@2.2.1':
     resolution: {integrity: sha512-lFMjJTrFL3j7L9yBxwYfCq2k6qqwHyzuUl/XBnif78PWTJYyL/dfowQHWE3sp6U6ZzqWiiIZnpTMO96zhkjwtg==}
@@ -676,6 +688,9 @@ packages:
 
   '@types/svg-arc-to-cubic-bezier@3.2.3':
     resolution: {integrity: sha512-UNOnbTtl0nVTm8hwKaz5R5VZRvSulFMGojO5+Q7yucKxBoCaTtS4ibSQVRHo5VW5AaRo145U8p1Vfg5KrYe9Bg==}
+
+  ag-charts-types@10.3.5:
+    resolution: {integrity: sha512-DtvV+IS4RlocGV2IcaQOe/eM6eBGGCvkLnwxGkDxKa8ddxivv90fwlfPxK0O5XnVectiKtWFfOw35Cm0k+4vMw==}
 
   ag-charts-types@11.2.2:
     resolution: {integrity: sha512-+L7Hr0rqAdnEbQO0mkDuDD05/ovX/zqZzVCCuvG3qdPSxLlUe4cJg1/gsMJdBH3etTn9jVMwo0FmDr9Vx7fwFQ==}
@@ -2062,9 +2077,18 @@ packages:
 
 snapshots:
 
+  '@ag-grid-community/core@32.3.5':
+    dependencies:
+      ag-charts-types: 10.3.5
+      tslib: 2.8.1
+
   '@alloc/quick-lru@5.2.0': {}
 
-  '@amcharts/amcharts5@5.11.3':
+  '@amcharts/amcharts5-geodata@5.1.4':
+    dependencies:
+      '@types/geojson': 7946.0.16
+
+  '@amcharts/amcharts5@5.12.1':
     dependencies:
       '@types/d3': 7.4.3
       '@types/d3-chord': 3.0.6
@@ -2691,6 +2715,8 @@ snapshots:
       '@types/geojson': 7946.0.16
 
   '@types/svg-arc-to-cubic-bezier@3.2.3': {}
+
+  ag-charts-types@10.3.5: {}
 
   ag-charts-types@11.2.2: {}
 
