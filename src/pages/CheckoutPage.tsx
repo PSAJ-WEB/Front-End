@@ -234,26 +234,28 @@ const CheckoutPage = () => {
             window.scrollTo({ top: 0, behavior: "smooth" });
         }, 100); // Memberi jeda agar navigasi selesai dulu
     };
-
-
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
         if (!address()) {
             alert("Please select an address first");
             return;
         }
-
+    
         try {
+            setLoading(true);
+    
             // Prepare order data
             const orderItems = cartItems().map(item => ({
+                product_id: item.id,
                 product_name: item.product_name,
                 product_image: item.product_image,
                 color: item.color,
                 color_code: item.color_code,
                 quantity: item.quantity,
-                price: item.price, // Kirim sebagai string
+                price: item.price.toString(), // Ensure price is string
+                category: "general" // Add required category field
             }));
-
+    
             // Create order
             const orderRes = await fetch(`http://127.0.0.1:8080/user/${userId}/order`, {
                 method: "POST",
@@ -262,26 +264,31 @@ const CheckoutPage = () => {
                     items: orderItems,
                     address_id: address()?.id,
                     notes: notes(),
-                    total_amount: (subtotal() + deliveryFee()).toFixed(2) // Hitung total dengan delivery fee
+                    total_amount: (subtotal() + deliveryFee()).toString() // Convert to string
                 }),
             });
-
-            if (!orderRes.ok) throw new Error("Failed to create order");
-
+    
+            if (!orderRes.ok) {
+                const errorData = await orderRes.json();
+                throw new Error(errorData.message || "Failed to create order");
+            }
+    
             const orderData = await orderRes.json();
-
+    
             // Clear cart
             await fetch(`http://127.0.0.1:8080/user/${userId}/cart/clear`, {
                 method: "DELETE",
             });
-
-            // Redirect to order confirmation dengan membawa total_amount
-            navigate(`/order-confirmation/${userId}?order_id=${orderData.order_id}&total=${orderData.total_amount}`);
-
+    
+            // Navigate to pending payment page with order details
+            navigate(`/checkout/pending?order_id=${orderData.id}&user_id=${userId}`);
+    
         } catch (err) {
             setError(err.message);
             console.error("Order submission error:", err);
             alert("Failed to place order. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -291,15 +298,6 @@ const CheckoutPage = () => {
     };
     const [clicked, setClicked] = createSignal(false);
     const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
-    const navigateWithUserId = (path: string) => {
-        const id = currentUserId() || userId;
-        if (id) {
-            navigate(`${path}?user_id=${id}`);
-            updateUserActivity(id);
-        } else {
-            navigate(path);
-        }
-    };
 
     const updateUserActivity = async (userId: string) => {
         try {
@@ -334,7 +332,7 @@ const CheckoutPage = () => {
         if (!userId) return;
 
         try {
-            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/likes/count`);
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/likes`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -344,6 +342,17 @@ const CheckoutPage = () => {
             console.error('Error fetching favorite count:', error);
         }
     };
+
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+            updateUserActivity(id);
+        } else {
+            navigate(path);
+        }
+    };
+    const goToProducts = () => navigateWithUserId("/products");
 
     const [favoriteCount, setFavoriteCount] = createSignal(0);
 
@@ -356,10 +365,10 @@ const CheckoutPage = () => {
                 </div>
                 <nav class="navbar-blog">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products">Products</a></li>
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/blogpage">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")}>Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
 
@@ -480,7 +489,7 @@ const CheckoutPage = () => {
 
                 <button
                     class={styles.checkoutButton}
-                    onClick={handleSubmit}
+                    onClick={handlePlaceOrder}
                     disabled={loading() || !address() || cartItems().length === 0}
                 >
                     {loading() ? "Processing..." : "Checkout"}

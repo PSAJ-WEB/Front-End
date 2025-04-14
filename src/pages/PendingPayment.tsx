@@ -5,49 +5,87 @@ import heartfull from '../img/Heart (1).svg';
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
-import { useNavigate } from "@solidjs/router";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
 import translate from '../img/Translate.svg';
 import logoqris from '../img/logoqris.png';
-import qrcode from '../img/qrcode.png';
+import qrcode from '../img/qris.jpg';
 
 const PendingPaymentPage = () => {
+    const [searchParams] = useSearchParams();
+    const orderId = searchParams.order_id;
+    const userId = searchParams.user_id;
     const navigate = useNavigate();
 
-    const [clicked, setClicked] = createSignal(false);
+    const [orderData, setOrderData] = createSignal(null);
+    const [loading, setLoading] = createSignal(true);
+    const [error, setError] = createSignal(null);
+    const [notes, setNotes] = createSignal('');
 
-    const goToFavoritePage = () => {
-        setClicked(true);
-        navigate("/favorite");
-    };
-
-    // Fungsi untuk navigasi ke halaman Cart
-    const goToCart = () => {
-        navigate("/cart");
-    };
-
-    const location = useLocation();
-
-    createEffect(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    // Fetch order data on component mount
+    createEffect(async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/order/${orderId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch order details');
+            }
+            const data = await response.json();
+            setOrderData(data);
+            setNotes(data.notes || '');
+            setLoading(false);
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
+        }
     });
 
+    // Handle notes update
+    const handleNotesUpdate = async () => {
+        try {
+            const response = await fetch(
+                `http://127.0.0.1:8080/user/${userId}/order/${orderId}/notes`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ notes: notes() }),
+                }
+            );
 
-    // Fungsi untuk navigasi ke halaman Account
-    const goToAccount = () => {
-        navigate("/account");
+            if (!response.ok) {
+                throw new Error('Failed to update notes');
+            }
+            // Show success message
+        } catch (err) {
+            console.error('Error updating notes:', err);
+        }
     };
-    const goToReadMore = () => {
-        navigate("/blogpage/readmore5fahion");
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }, 100); // Memberi jeda agar navigasi selesai dulu
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+        } else {
+            navigate(path);
+        }
     };
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
 
-    const [notes, setNotes] = createSignal('Extra packing, please!');
+
+    if (loading()) return <div>Loading...</div>;
+    if (error()) return <div>Error: {error()}</div>;
+    if (!orderData()) return <div>No order data found</div>;
+
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToAccount = () => navigateWithUserId("/account");
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigateWithUserId("/favorite");
+    };
+    const [clicked, setClicked] = createSignal(false);
 
     return (
         <div class={styles.Container}>
@@ -89,12 +127,18 @@ const PendingPaymentPage = () => {
                         <section class={styles.section}>
                             <h2 class={styles.sectionTitle}>Address</h2>
                             <div class={styles.addressCard}>
+                                {orderData().address ? (
                                 <div class={styles.addressDetails}>
-                                    <p class={styles.addressName}>Diva Faizah Dwiyanti - Home (Main)</p>
-                                    <p class={styles.addressPhone}>0813-9023-6662</p>
-                                    <p class={styles.addressStreet}>Jl. Melati, Bawuk, Karangritung, Kec. Sumbang, Kabupaten Banyumas, Jawa Tengah</p>
-                                    <p class={styles.addressPostal}>53183</p>
+                                    <p class={styles.addressName}>
+                                        {orderData().address.recipient_name} - {orderData().address.address_type}
+                                    </p>
+                                    <p class={styles.addressPhone}>{orderData().address.phone_number}</p>
+                                    <p class={styles.addressStreet}>{orderData().address.address}</p>
+                                    <p class={styles.addressPostal}>{orderData().address.zip_code}</p>
                                 </div>
+                                ) :(
+                                <p>No address selected</p>
+                                )}
                                 <button class={styles.changeAddressBtn}>Change Address</button>
                             </div>
                         </section>
@@ -111,15 +155,15 @@ const PendingPaymentPage = () => {
                             <div class={styles.orderSummary}>
                                 <div class={styles.orderItem}>
                                     <span>Subtotal</span>
-                                    <span>368.300 IDR</span>
+                                    <span>{orderData().subtotal} IDR</span>
                                 </div>
                                 <div class={styles.orderItem}>
                                     <span>Delivery</span>
-                                    <span>11.400 IDR</span>
+                                    <span>{orderData().delivery_fee} IDR</span>
                                 </div>
                                 <div class={`${styles.orderItem} ${styles.orderTotal}`}>
                                     <span>Total</span>
-                                    <span>492.000 IDR</span>
+                                    <span>{orderData().total_amount} IDR</span>
                                 </div>
                             </div>
                         </section>
@@ -130,6 +174,7 @@ const PendingPaymentPage = () => {
                                 class={styles.notesTextarea}
                                 value={notes()}
                                 onInput={(e) => setNotes(e.target.value)}
+                                onBlur={handleNotesUpdate}
                             />
                         </section>
 

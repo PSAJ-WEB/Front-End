@@ -37,7 +37,7 @@ export default function CartPage() {
     const [totalPrice, setTotalPrice] = createSignal(0);
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const params = useParams();
-    const orderId = searchParams.order_id;
+    // const orderId = searchParams.order_id;
     const navigate = useNavigate();
 
     const [error, setError] = createSignal<string | null>(null);
@@ -215,7 +215,7 @@ export default function CartPage() {
             console.error('Error fetching cart count:', error);
         }
     };
-
+    const [orderId, setOrderId] = createSignal<string | null>(null);
     const [onlineUsers, setOnlineUsers] = createSignal<{ id: string }[]>([]);
 
     const recalculateTotal = () => {
@@ -265,19 +265,18 @@ export default function CartPage() {
             setSelectAll(selectedItems().length === cartItems().length);
         }
     });
-
     const handleCheckout = async () => {
         if (selectedItems().length === 0) {
             alert("Please select at least one item to checkout");
             return;
         }
-
+    
         if (!userId) {
             console.error("No user ID found");
             navigate("/account");
             return;
         }
-
+    
         try {
             // Prepare order items with proper data types
             const orderItems = cartItems()
@@ -289,30 +288,23 @@ export default function CartPage() {
                     color: item.color,
                     color_code: item.color_code,
                     quantity: item.quantity,
-                    // Clean the price by removing the currency and normalizing the format
                     price: item.price.replace(/[^\d.,]/g, '').replace('.', '').replace(',', '.'),
                     category: item.product_category || 'general'
                 }));
+    
             // Calculate total amount
             const totalAmount = orderItems.reduce((sum, item) => {
                 const price = parseFloat(item.price);
                 return sum + (price * item.quantity);
             }, 0);
-
-            console.log("Submitting order:", {
-                total_amount: totalAmount.toFixed(2),
-                items: orderItems
-            });
-
+    
             const orderData = {
                 total_amount: totalAmount.toFixed(2),
                 items: orderItems,
                 address_id: null,
                 notes: null
             };
-            console.log("Order data to be sent:", JSON.stringify(orderData, null, 2));
-
-            // Then send it
+    
             const response = await fetch(`http://127.0.0.1:8080/user/${userId}/order`, {
                 method: "POST",
                 headers: {
@@ -320,25 +312,27 @@ export default function CartPage() {
                 },
                 body: JSON.stringify(orderData)
             });
-
-
+    
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
                 throw new Error(errorData?.message || "Failed to create order");
             }
-
+    
             const result = await response.json();
             console.log("Order created:", result);
-
+    
+            // Set the order ID from the response
+            setOrderId(result.id); // Make sure this matches your backend response structure
+    
             // Update UI
             setCartItems(prev => prev.filter(item => !selectedItems().includes(item.id)));
             setSelectedItems([]);
             setTotalPrice(0);
             fetchCartCount();
-
-            // Navigate to checkout page
-            navigate(`/checkout/${userId}?order_id=${orderId}`);
-                        } catch (error) {
+    
+            // Navigate to checkout page with the correct order ID
+            navigate(`/checkout/${userId}?order_id=${result.id}`);
+        } catch (error) {
             console.error("Error during checkout:", error);
             alert(`Checkout failed: ${error.message}`);
         }

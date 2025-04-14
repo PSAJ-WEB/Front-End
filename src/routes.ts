@@ -196,7 +196,7 @@ export const routes: RouteDefinition[] = [
     component: Checkout,
   },
   {
-    path: '/PendingPayment',
+    path: '/checkout/pending',
     component: PendingPayment,
   },
   {
