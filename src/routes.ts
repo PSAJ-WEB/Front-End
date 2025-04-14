@@ -192,7 +192,7 @@ export const routes: RouteDefinition[] = [
     component: FavoritePage,
   },
   {
-    path: '/CheckoutPage',
+    path: '/checkout/:userId',
     component: Checkout,
   },
   {
@@ -208,11 +208,11 @@ export const routes: RouteDefinition[] = [
     component: ForgotPassword1,
   },
   {
-    path: '/ForgotVerify',
+    path: '/forgot-password/verify',
     component: ForgotVerify,
   },
   {
-    path: '/NewPassword',
+    path: '/newpassword',
     component: NewPassword,
   },
   {

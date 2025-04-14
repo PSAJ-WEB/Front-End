@@ -11,6 +11,7 @@ import heartfull from '../img/Heart (1).svg';
 import befooter from '../img/befooter.png';
 import "./productpagedetail.css";
 
+
 interface ProductDetail {
     id: number;
     name: string;
@@ -49,6 +50,83 @@ const ProductPageDetail = () => {
     const [isLoading, setIsLoading] = createSignal(false);
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
 
+    // Tambahkan state untuk notifikasi
+    const [showNotification, setShowNotification] = createSignal(false);
+    const [notificationMessage, setNotificationMessage] = createSignal("");
+
+    const [cartCount, setCartCount] = createSignal(0);
+
+    const fetchCartCount = async () => {
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart/count`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setCartCount(data.count || 0);
+        } catch (error) {
+            console.error('Error fetching cart count:', error);
+            showCartNotification("Gagal memuat jumlah keranjang");
+        }
+    };
+
+    const addToCart = async () => {
+        if (!userId) {
+            navigate("/account");
+            return;
+        }
+
+        const currentProduct = product();
+        if (!currentProduct) return;
+
+        setIsLoading(true);
+        try {
+            const selectedColor = currentProduct.colors[selectedColorIndex()];
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    product_id: currentProduct.id,
+                    color: selectedColor.color,
+                    color_code: selectedColor.color_code,
+                    quantity: quantity()
+                })
+            });
+            const data = await response.json(); 
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || "Failed to add to cart");
+            }
+
+            await fetchCartCount();
+            // showCartNotification(`${currentProduct.name} (${quantity()}x) berhasil ditambahkan ke keranjang!`);
+        } catch (error) {
+            console.error("Error adding to cart:", error);
+            showCartNotification(`Gagal menambahkan ke keranjang: ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    // Fungsi untuk menampilkan notifikasi
+    const showCartNotification = (message: string) => {
+        setNotificationMessage(message);
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000); // Notifikasi hilang setelah 3 detik
+    };
+
+    // Update fungsi addToCart
+
+    // Di bagian return, tambahkan komponen notifikasi
+    <Show when={showNotification()}>
+        <div class="cart-notification">
+            {notificationMessage()}
+        </div>
+    </Show>
     const handleQuantityChange = (increment: boolean) => {
         if (increment) {
             setQuantity(quantity() + 1);
@@ -234,39 +312,6 @@ const ProductPageDetail = () => {
         }
     };
 
-    const addToCart = async () => {
-        if (!userId) {
-            navigate("/account");
-            return;
-        }
-
-        const currentProduct = product();
-        if (!currentProduct) return;
-
-        try {
-            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    product_id: currentProduct.id,
-                    color: currentProduct.colors[selectedColorIndex()].color,
-                    color_code: currentProduct.colors[selectedColorIndex()].color_code,
-                    quantity: quantity(),
-                }),
-            });
-
-            if (response.ok) {
-                alert("Product added to cart successfully!");
-            } else {
-                throw new Error("Failed to add to cart");
-            }
-        } catch (error) {
-            console.error("Error adding to cart:", error);
-            alert("Failed to add to cart");
-        }
-    };
 
     const [favoriteCount, setFavoriteCount] = createSignal(0);
     const fetchFavoriteCount = async () => {
@@ -283,6 +328,7 @@ const ProductPageDetail = () => {
         }
     };
     onMount(() => {
+        fetchCartCount();
         fetchProductDetail();
         if (userId) {
             fetchUserProfile();
@@ -312,8 +358,28 @@ const ProductPageDetail = () => {
     const goToProducts = () => navigateWithUserId("/products");
     const goToAboutUs = () => navigateWithUserId("/about-us");
     const goToBlog = () => navigateWithUserId("/blogpage");
+    const formatPrice = (priceString: string) => {
+        if (!priceString) return "Rp 0";
+        // Jika sudah dalam format IDR, langsung return
+        if (priceString.includes("IDR") || priceString.includes("Rp")) return priceString;
+        
+        // Coba parse number
+        const priceNum = parseFloat(priceString.replace(/[^0-9.]/g, ''));
+        if (isNaN(priceNum)) return priceString;
+        
+        return new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          maximumFractionDigits: 0
+        }).format(priceNum);
+      };
     return (
         <div class="product-page">
+            <Show when={showNotification()}>
+                <div class="cart-notification">
+                    {notificationMessage()}
+                </div>
+            </Show>
             {/* Header */}
             <header>
                 <div class="logo">
@@ -336,6 +402,9 @@ const ProductPageDetail = () => {
                     </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
+                        {cartCount() > 0 && (
+                            <span class="cart-badge">{cartCount()}</span>
+                        )}
                     </button>
                     <div class="dash-account-btn" onClick={goToAccount}>
                         <img
@@ -420,8 +489,7 @@ const ProductPageDetail = () => {
                                 )}
                             </div>
                         </div>
-                        <div class="price-detail">{product()!.price}</div>
-
+                        <div class="price-detail">{formatPrice(product()!.price)}</div>
                         <div class="description">
                             <h2>Description</h2>
                             <p>{product()!.description}</p>
@@ -436,7 +504,7 @@ const ProductPageDetail = () => {
                                             class={`color ${index() === selectedColorIndex() ? 'selected' : ''}`}
                                             style={{ background: color.color_code }}
                                             onClick={() => setSelectedColorIndex(index())}
-                                            title={color.color} // Add tooltip with color name
+                                            title={color.color}
                                         />
                                     )}
                                 </For>
@@ -469,7 +537,16 @@ const ProductPageDetail = () => {
 
                         <div class="action-buttons">
                             <button class="buy-now">Buy Now</button>
-                            <button class="add-to-cart" onClick={addToCart}>Add to Cart</button>
+                            <button
+                                class="add-to-cart"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    addToCart();
+                                }}
+                                disabled={isLoading()}
+                            >
+                                {isLoading() ? "Adding..." : "Add to Cart"}
+                            </button>
                         </div>
                     </div>
                 </section>

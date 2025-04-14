@@ -595,7 +595,7 @@ header {
   width: 0;
 }
 
-.products-grid {
+.products-grid{
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);

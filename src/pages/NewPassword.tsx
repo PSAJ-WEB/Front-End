@@ -1,4 +1,4 @@
-import { createSignal, createEffect } from "solid-js";
+import { createSignal, createEffect, onMount } from "solid-js";
 import styles from "./NewPassword.module.css";
 
 const ResetPassword = () => {
@@ -7,6 +7,43 @@ const ResetPassword = () => {
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [message, setMessage] = createSignal("");
   const [passwordMatch, setPasswordMatch] = createSignal(true);
+  const [email, setEmail] = createSignal("");
+  const [code, setCode] = createSignal("");
+  const [isValid, setIsValid] = createSignal(false);
+
+  // Get code from URL and verify with backend
+  onMount(async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeParam = urlParams.get("code");
+    
+    if (!codeParam) {
+      window.location.href = "/forgot-password";
+      return;
+    }
+    
+    setCode(codeParam);
+    
+    try {
+      const response = await fetch("http://127.0.0.1:8080/verify-and-get-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: codeParam }),
+      });
+
+      const data = await response.json();
+      
+      if (data.valid) {
+        setEmail(data.email);
+        setIsValid(true);
+      } else {
+        window.location.href = "/forgot-password";
+      }
+    } catch (error) {
+      window.location.href = "/forgot-password";
+    }
+  });
 
   createEffect(() => {
     if (confirmPassword() && newPassword() !== confirmPassword()) {
@@ -16,8 +53,13 @@ const ResetPassword = () => {
     }
   });
 
-  const handleSubmit = (e: Event) => {
+  const handleSubmit = async (e: Event) => {
     e.preventDefault();
+    
+    if (!isValid()) {
+      setMessage("Session expired. Please try again.");
+      return;
+    }
     
     if (!newPassword()) {
       setMessage("Please enter new password");
@@ -36,17 +78,35 @@ const ResetPassword = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setMessage("Your password has been successfully reset");
-      setIsSubmitting(false);
+    try {
+      const response = await fetch("http://127.0.0.1:8080/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          email: email(),
+          code: code(),
+          new_password: newPassword(),
+          confirm_password: confirmPassword()
+        }),
+      });
+
+      const data = await response.json();
       
-      // Redirect to login page after successful password reset
-      setTimeout(() => {
-        // window.location.href = "/login";
-        console.log("Redirecting to login page");
-      }, 2000);
-    }, 1500);
+      if (data.success) {
+        setMessage("Password reset successfully. Redirecting to login...");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      } else {
+        setMessage(data.message);
+      }
+    } catch (error) {
+      setMessage("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

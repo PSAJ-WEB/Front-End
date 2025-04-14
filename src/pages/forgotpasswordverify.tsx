@@ -1,13 +1,13 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import styles from "./forgotpasswordverify.module.css";
 
 const ForgotPassword = () => {
   const [verificationCode, setVerificationCode] = createSignal("");
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [message, setMessage] = createSignal("");
-  const email = "xxxxx@gmail.com"; // Email yang ditampilkan di halaman
+  const [email, setEmail] = createSignal("");
 
-  const handleSubmit = (e: Event) => {
+  const handleSubmit = async (e: Event) => {
     e.preventDefault();
     
     if (!verificationCode()) {
@@ -17,17 +17,51 @@ const ForgotPassword = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call for verification
-    setTimeout(() => {
-      setMessage("Verification successful. You will be redirected shortly.");
-      setIsSubmitting(false);
+    try {
+      // Langkah 1: Dapatkan email dari database berdasarkan kode
+      const emailResponse = await fetch("http://127.0.0.1:8080/get-email-by-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: verificationCode() }),
+      });
+
+      if (!emailResponse.ok) {
+        throw new Error("Invalid verification code");
+      }
+
+      const emailData = await emailResponse.json();
+      setEmail(emailData.email);
+
+      // Langkah 2: Verifikasi kode
+      const verifyResponse = await fetch("http://127.0.0.1:8080/forgot-password/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          email: emailData.email,
+          code: verificationCode() 
+        }),
+      });
+
+      const verifyData = await verifyResponse.json();
       
-      // Redirect to reset password page after successful verification
-      setTimeout(() => {
-        // window.location.href = "/reset-password";
-        console.log("Redirecting to reset password page");
-      }, 2000);
-    }, 1500);
+      if (verifyData.success) {
+        setMessage("Verification successful. You will be redirected shortly.");
+        // Redirect ke halaman new password dengan membawa code dan email
+        setTimeout(() => {
+          window.location.href = `/newpassword?&email=${encodeURIComponent(emailData.email)}`;
+        }, 2000);
+      } else {
+        setMessage(verifyData.message);
+      }
+    } catch (error) {
+      setMessage("Invalid or expired verification code");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -42,7 +76,7 @@ const ForgotPassword = () => {
           <p class={styles.description}>
             We've sent 6 characters verification code to
             <br />
-            <span class={styles.email}>{email}</span>
+            <span class={styles.email}>{email()}</span>
           </p>
           
           <form onSubmit={handleSubmit} class={styles.form}>
