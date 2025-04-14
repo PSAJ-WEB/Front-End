@@ -1,5 +1,5 @@
-import { createSignal, onMount } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { createSignal, onMount,  } from "solid-js";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import AuthPopup from "../pages/authpopup";
 import IntroPopup from "./authpopup"; // Make sure this path is correct
 import logo from '../img/logo.png';
@@ -177,6 +177,20 @@ const LandingPage = () => {
   const requireLogin = () => {
     setShowAuthPopup(true);
   };
+    const [isLoading, setIsLoading] = createSignal(false);
+    const [searchQuery, setSearchQuery] = createSignal("");
+    const goToProductDetail = (productId: number) => {
+      if (userId) {
+        navigate(`/products/detail/${productId}?user_id=${userId}`);
+      } else {
+        navigate(`/products/detail/${productId}`);
+      }
+      // Scroll ke atas halaman
+      window.scrollTo(0, 0);
+    };
+    const [searchParams] = useSearchParams();
+    const userId = searchParams.user_id;
+
 
   const videoData = [
     { src: video1, cover: cover1, title: "Exclusive Designs, Timeless, and Effortlessly Stylish", date: "2024-03-30" },
@@ -252,41 +266,53 @@ const LandingPage = () => {
           <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation("/products"); }} class="view-all">View More</a>
         </div>
 
-        <div class="products-grid">
-          {products().map((product, index) => (
-            <div class="pro-card" key={product.id} onMouseLeave={() => setMainImage(product.id, null)}>
-              <div class="product-imagee">
-                <img
-                  src={product.current_image}
-                  alt={product.name}
-                  class="pro-image"
-                  onError={(e) => {
-                    e.currentTarget.src = '/fallback-image.jpg';
-                    e.currentTarget.onerror = null;
-                  }}
-                />
-              </div>
-              <p class="section-products">{product.category}</p>
-              <span class="heart-icon" onClick={() => toggleLike(index)}>
-                <img src={product.liked ? heartfull : heart} alt="Like" />
-              </span>
-              <h3 class="name-product">{product.name}</h3>
-              <p class="price">{product.price}</p>
-              <div class="color-optionss">
-                {product.colors.map((color, i) => (
-                  <span
-                    key={i}
-                    class="color"
-                    style={{
-                      background: color.color_code || getColorCode(color.color),
+        <div class="products-grid3">
+          {products().filter(p => !searchQuery() ||
+            p.name.toLowerCase().includes(searchQuery().toLowerCase())).map((product, index) => (
+              <div
+                id={`product-${product.id}`}
+                class={`pro-card`}
+                key={product.id}
+                onClick={() => goToProductDetail(product.id)}
+                onMouseLeave={() => setMainImage(product.id, null)}
+              >
+                <div class="product-img">
+                  <img
+                    src={product.current_image} // Tidak perlu fallback karena sudah di-handle di setMainImage
+                    alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.src = '/fallback-image.jpg';
+                      e.currentTarget.onerror = null;
                     }}
-                    onMouseEnter={() => setMainImage(product.id, color.image)}
-                    onMouseLeave={() => setMainImage(product.id, null)}
                   />
-                ))}
+                </div>
+                <span
+                  class="favorite-button"
+                  onClick={(e) => toggleLike(product.id, index, e)}
+                  classList={{ 'loading': isLoading() }}
+                >
+                  <img
+                    src={product.liked ? heartfull : heart}
+                    alt={product.liked ? "Unlike" : "Like"}
+                  />
+                </span>
+                <p class="section-product">{product.category}</p>
+                <h3 innerHTML={product.name}></h3>
+                <p class="price">{product.price}</p>
+                <div class="color-optionss">
+                  {product.colors.map((color) => (
+                    <span
+                      class="color"
+                      style={{
+                        background: color.color_code || getColorCode(color.color),
+                      }}
+                      onMouseEnter={() => setMainImage(product.id, color.image)}
+                      onMouseLeave={() => setMainImage(product.id, null)} // Pastikan ini di-set ke null
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
 

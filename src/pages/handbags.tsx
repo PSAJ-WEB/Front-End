@@ -1,4 +1,4 @@
-import { createSignal, createEffect, onMount } from "solid-js";
+import { createSignal, createEffect, onMount, Show } from "solid-js";
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
@@ -33,11 +33,21 @@ const Handbags = () => {
     const [searchParams] = useSearchParams();
     const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
     const userId = searchParams.user_id;
+    const [showAuthPopup, setShowAuthPopup] = createSignal(false);
+    const [onlineUsers, setOnlineUsers] = createSignal([]);
     const [products, setProducts] = createSignal<Product[]>([]);
     const [isLoading, setIsLoading] = createSignal(false);
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const [searchQuery, setSearchQuery] = createSignal("");
     const navigate = useNavigate();
+
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
+    const [clicked, setClicked] = createSignal(false);
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigateWithUserId("/favorite");
+    };
+
 
     const formatImageUrl = (imagePath: string) => {
         if (!imagePath) return '/fallback-image.jpg';
@@ -48,59 +58,59 @@ const Handbags = () => {
 
     const getColorCode = (colorName) => {
         const colorMap = {
-          // Basic colors
-          red: '#8A191F',
-          mint: '#A1BEAB',
-          pink: '#E0A091',
-          green: '#00FF00',
-          black: '#000000',
-          white: '#FFFFFF',
-          blue: '#2196F3',
-          orange: '#CC7633',
-          navy: '#1F2A39',
-          cream: '#FFFDD0',
-    
-          // Specific product colors
-          glasses: '#D8CDBD',
-          belt2: '#493635',
-          belt3: '#302E2F',
-          clothes1: '#D2CFC5',
-          clothes2: '#A79686',
-          clothes3: '#C1997D',
-          beige3: '#F5ECE1',
-          grey2: '#B8ABA3',
-          denim2: '#798999',
-          blackfaux: '#2C2430',
-          domgrey: '#413F41',
-          blackgrey: '#212129',
-          brown: '#704324',
-          brown2: '#8C6446',
-          brownlight: '#A88B63',
-          beige2: '#DDD1B2',
-          pinkmuda: '#E4BABB',
-          beige: '#E5D2B2',
-          ijo: '#594D0F',
-          lightgrey: '#CC7633', // Note: Same as orange
-          ashgrey: '#CC7633',  // Note: Same as orange
-          blacky: '#222427',
-          denim: '#7F90A1',
-          grey: 'rgba(100, 89, 87, 1)',
-    
-          // Gradient colors (returning first color as fallback)
-          gradient1: 'linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(221, 176, 104, 1))',
-          gradient2: 'linear-gradient(to bottom, rgba(123, 110, 106, 1), rgba(221, 176, 104, 1))',
-          gradient3: 'linear-gradient(to bottom, rgba(190, 128, 114, 1), rgba(221, 176, 104, 1))',
-          gradient4: 'linear-gradient(to bottom, rgba(233, 217, 197, 1), rgba(221, 176, 104, 1))',
-    
-    
-          // Special glasses gradients (returning first color as fallback)
-          glasses1: 'radial-gradient(circle, hsla(220, 15%, 24%, 1) 30%, hsla(53, 4%, 82%, 1) 100%)',
-          glasses2: 'radial-gradient(circle, #717A71 30%, #CDC6AA 100%)',
-          glasses3: 'radial-gradient(circle, #FFD16E 15%, #2B1F1A 70%)',
+            // Basic colors
+            red: '#8A191F',
+            mint: '#A1BEAB',
+            pink: '#E0A091',
+            green: '#00FF00',
+            black: '#000000',
+            white: '#FFFFFF',
+            blue: '#2196F3',
+            orange: '#CC7633',
+            navy: '#1F2A39',
+            cream: '#FFFDD0',
+
+            // Specific product colors
+            glasses: '#D8CDBD',
+            belt2: '#493635',
+            belt3: '#302E2F',
+            clothes1: '#D2CFC5',
+            clothes2: '#A79686',
+            clothes3: '#C1997D',
+            beige3: '#F5ECE1',
+            grey2: '#B8ABA3',
+            denim2: '#798999',
+            blackfaux: '#2C2430',
+            domgrey: '#413F41',
+            blackgrey: '#212129',
+            brown: '#704324',
+            brown2: '#8C6446',
+            brownlight: '#A88B63',
+            beige2: '#DDD1B2',
+            pinkmuda: '#E4BABB',
+            beige: '#E5D2B2',
+            ijo: '#594D0F',
+            lightgrey: '#CC7633', // Note: Same as orange
+            ashgrey: '#CC7633',  // Note: Same as orange
+            blacky: '#222427',
+            denim: '#7F90A1',
+            grey: 'rgba(100, 89, 87, 1)',
+
+            // Gradient colors (returning first color as fallback)
+            gradient1: 'linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(221, 176, 104, 1))',
+            gradient2: 'linear-gradient(to bottom, rgba(123, 110, 106, 1), rgba(221, 176, 104, 1))',
+            gradient3: 'linear-gradient(to bottom, rgba(190, 128, 114, 1), rgba(221, 176, 104, 1))',
+            gradient4: 'linear-gradient(to bottom, rgba(233, 217, 197, 1), rgba(221, 176, 104, 1))',
+
+
+            // Special glasses gradients (returning first color as fallback)
+            glasses1: 'radial-gradient(circle, hsla(220, 15%, 24%, 1) 30%, hsla(53, 4%, 82%, 1) 100%)',
+            glasses2: 'radial-gradient(circle, #717A71 30%, #CDC6AA 100%)',
+            glasses3: 'radial-gradient(circle, #FFD16E 15%, #2B1F1A 70%)',
         };
-    
+
         return colorMap[colorName.toLowerCase()] || '#CCCCCC';
-      };
+    };
     const fetchProducts = async () => {
         try {
             setIsLoading(true);
@@ -215,6 +225,46 @@ const Handbags = () => {
             )
         );
     };
+    const [searchTimeout, setSearchTimeout] = createSignal<number | null>(null);
+
+    const [matchedProductId, setMatchedProductId] = createSignal<number | null>(null);
+
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+
+        // Clear previous timeout
+        const timeout = searchTimeout();
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+
+        // Set new timeout
+        const newTimeout = window.setTimeout(() => {
+            fetchProducts(query).then(() => {
+                // Setelah fetch selesai, cari produk yang cocok
+                const matched = products().find(p =>
+                    p.name.toLowerCase().includes(query.toLowerCase())
+                );
+                setMatchedProductId(matched?.id || null);
+
+                // Scroll ke produk yang cocok jika ada
+                if (matched) {
+                    setTimeout(() => {
+                        const element = document.getElementById(`product-${matched.id}`);
+                        if (element) {
+                            element.scrollIntoView({
+                                behavior: "smooth",
+                                block: "nearest"
+                            });
+                        }
+                    }, 100);
+                }
+            });
+        }, 300);
+
+        setSearchTimeout(newTimeout);
+    };
+
 
     const highlightText = (text: string, query: string) => {
         if (!query) return text;
@@ -246,6 +296,20 @@ const Handbags = () => {
         }
         await fetchProducts();
     });
+    // const [isLoading, setIsLoading] = createSignal(false);
+    // const [searchQuery, setSearchQuery] = createSignal("");
+    const goToProductDetail = (productId: number) => {
+        if (userId) {
+            navigate(`/products/detail/${productId}?user_id=${userId}`);
+        } else {
+            navigate(`/products/detail/${productId}`);
+        }
+        // Scroll ke atas halaman
+        window.scrollTo(0, 0);
+    };
+    // const [searchParams] = useSearchParams();
+    // const userId = searchParams.user_id;
+    //  [clicked, setClicked] = createSignal(false);
 
     return (
         <div class="landing-page">
@@ -263,10 +327,20 @@ const Handbags = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <div class="favorites-indicator" onClick={goToFavoritePage}>
+                        <img
+                            src={heart}
+                            alt="Favorites"
+                            class="favorites-icon"
+                        />
+                        <Show when={favoriteCount() > 0}>
+                            <span class="favorites-badge">{favoriteCount()}</span>
+                        </Show>
+                    </div>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
-                    <button class="dash-account-btn" onClick={goToAccount}>
+                    <div class="dash-account-btn" onClick={goToAccount}>
                         <img
                             src={profileImage() || accountIcon}
                             alt="Account"
@@ -277,7 +351,10 @@ const Handbags = () => {
                                 "object-fit": 'cover'
                             }}
                         />
-                    </button>
+                        {onlineUsers().some(u => u.id === userId) && (
+                            <div class="online-status-dot"></div>
+                        )}
+                    </div>
                 </div>
             </header>
 
@@ -308,54 +385,58 @@ const Handbags = () => {
                             class="search-box"
                             placeholder="Type something here"
                             value={searchQuery()}
-                            onInput={(e) => setSearchQuery(e.target.value)}
-                        />
+                            onInput={(e) => handleSearch(e.currentTarget.value)} />
                         <button class="search-button">Search</button>
                     </div>
                 </div>
 
-                <div class="products-grid">
-                    {products().map((product) => (
-                        <div class="pro-card" key={product.id} id={`product-${product.id}`}>
-                            <div class="product-imagee">
-                                <img
-                                    src={product.current_image}
-                                    alt={product.name}
-                                    class="pro-image"
-                                    onError={(e) => {
-                                        e.currentTarget.src = '/fallback-image.jpg';
-                                        e.currentTarget.onerror = null;
-                                    }}
-                                />
-                            </div>
-                            <p class="section-products">{product.category}</p>
-                            <span
-                                class={`heart-icon ${isLoading() ? 'loading' : ''}`}
-                                onClick={() => toggleLike(product.id)}
+                <div class="products-grid3">
+                    {products().filter(p => !searchQuery() ||
+                        p.name.toLowerCase().includes(searchQuery().toLowerCase())).map((product, index) => (
+                            <div
+                                id={`product-${product.id}`}
+                                class={`pro-card`}
+                                key={product.id}
+                                onClick={() => goToProductDetail(product.id)}
+                                onMouseLeave={() => setMainImage(product.id, null)}
                             >
-                                <img src={product.liked ? heartfull : heart} alt="Like" />
-                                {product.likes_count > 0 && (
-                                    <span class="like-count">{product.likes_count}</span>
-                                )}
-                            </span>
-                            <h3 class="name-product">
-                                <span innerHTML={highlightText(product.name, searchQuery())}></span>
-                            </h3>
-                            <p class="price">{parseInt(product.price).toLocaleString('id-ID')} IDR</p>
-                            <div class="color-optionss" onMouseLeave={() => setMainImage(product.id, null)}>
-                                {product.colors.map((color) => (
-                                    <span
-                                        class="color"
-                                        style={{
-                                            background: color.color_code || getColorCode(color.color),
+                                <div class="product-img">
+                                    <img
+                                        src={product.current_image} // Tidak perlu fallback karena sudah di-handle di setMainImage
+                                        alt={product.name}
+                                        onError={(e) => {
+                                            e.currentTarget.src = '/fallback-image.jpg';
+                                            e.currentTarget.onerror = null;
                                         }}
-                                        onMouseEnter={() => setMainImage(product.id, color.image)}
-                                        key={color.color}
                                     />
-                                ))}
+                                </div>
+                                <span
+                                    class="favorite-button"
+                                    onClick={(e) => toggleLike(product.id, index, e)}
+                                    classList={{ 'loading': isLoading() }}
+                                >
+                                    <img
+                                        src={product.liked ? heartfull : heart}
+                                        alt={product.liked ? "Unlike" : "Like"}
+                                    />
+                                </span>
+                                <p class="section-product">{product.category}</p>
+                                <h3 innerHTML={product.name}></h3>
+                                <p class="price">{product.price}</p>
+                                <div class="color-optionss">
+                                    {product.colors.map((color) => (
+                                        <span
+                                            class="color"
+                                            style={{
+                                                background: color.color_code || getColorCode(color.color),
+                                            }}
+                                            onMouseEnter={() => setMainImage(product.id, color.image)}
+                                            onMouseLeave={() => setMainImage(product.id, null)} // Pastikan ini di-set ke null
+                                        />
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </section>
 

@@ -93,6 +93,8 @@ header {
 
 
 .navbar {
+  font-family: 'SF-Pro Display' !important;
+  font-size: 18px;
   display: flex;
   justify-content: center; /* Membuat konten di tengah secara horizontal */
 }
@@ -619,13 +621,7 @@ header {
   width: 0;
 }
 
-.products-gridl {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px; /* Pastikan gap 0px */
-  margin: 0;
-  padding: 0;
-}
+
 .full-width-image {
   width: 100vw;
 }

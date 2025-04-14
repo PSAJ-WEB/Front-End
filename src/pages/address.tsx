@@ -4,6 +4,8 @@ import styles from './address.module.css';
 import PopupAddress from './popupaddress';
 import accountIcon from '../img/UserCircle (2).svg';
 import { useNavigate, useParams, useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import trash from '../img/Trash.svg'
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
@@ -71,6 +73,13 @@ const Address: Component = () => {
         }
     };
 
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
+    };
+
     const goToCart = () => navigateWithUserId("/cart");
     const goToAccount = () => navigateWithUserId("/account");
     const goToDashboard = () => navigateWithUserId("/dashboard");
@@ -106,13 +115,13 @@ const Address: Component = () => {
             navigate("/login");
             return;
         }
-        
+
         // Pastikan userIdFromParams adalah string
         const userIdStr = String(userIdFromParams);
         setUserId(userIdStr);
         updateUserActivity();
         fetchUserProfile(userIdStr);
-    
+
         try {
             const response = await fetch(`http://localhost:8080/user/${userIdStr}/addresses`);
             if (response.ok) {
@@ -267,6 +276,13 @@ const Address: Component = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
+
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>

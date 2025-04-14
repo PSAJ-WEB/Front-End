@@ -2,6 +2,8 @@ import { Component, onMount, createSignal } from 'solid-js';
 import { useNavigate } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import styles from './blogpagepoweraccessories(4).module.css';
 import cartIcon from '../img/Tote.svg';
@@ -61,6 +63,13 @@ const PowerAccessories4: Component = () => {
   });
   const navigate = useNavigate();
 
+  const [clicked, setClicked] = createSignal(false);
+
+  const goToFavoritePage = () => {
+    setClicked(true);
+    navigate("/favorite");
+  };
+
   // Fungsi untuk navigasi ke halaman Cart
   const goToCart = () => {
     navigate("/cart");
@@ -85,6 +94,12 @@ const PowerAccessories4: Component = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
+          <button class="fav" onClick={goToFavoritePage}>
+            <img
+              src={clicked() ? heartfull : heart}
+              alt="heart"
+            />
+          </button>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
@@ -114,7 +129,6 @@ const PowerAccessories4: Component = () => {
       {/* Blog Content */}
       <article class={styles.blogPost}>
         <h1>The Power of Accessories: How to Transform Any Outfit</h1>
-        <div class={styles.metadata}>September 12, 2025 👁️ 3 mins read</div>
         <p>Accessories have the ability to take a simple outfit from basic to extraordinary. Whether it’s a bold statement necklace, a structured handbag, or the perfect pair of sunglasses, the right accessories can redefine your entire look. By understanding how to choose and style accessories effectively, you can elevate your fashion game and express your unique personality. Here are four key ways to transform any outfit with accessories.</p>
 
         <section class={styles.section2}>

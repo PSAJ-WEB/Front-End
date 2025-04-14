@@ -1,5 +1,7 @@
 import { createSignal } from 'solid-js';
 import styles from './PendingPayment.module.css';
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
@@ -14,6 +16,13 @@ import qrcode from '../img/qrcode.png';
 
 const PendingPaymentPage = () => {
     const navigate = useNavigate();
+
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
+    };
 
     // Fungsi untuk navigasi ke halaman Cart
     const goToCart = () => {
@@ -56,6 +65,12 @@ const PendingPaymentPage = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>

@@ -2,6 +2,8 @@ import { Component, onMount, createSignal } from 'solid-js';
 import { useNavigate } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import styles from './blogpageeffortlesschic(1).module.css';
 import cartIcon from '../img/Tote.svg';
@@ -59,6 +61,13 @@ const EffortlessChic1: Component = () => {
   });
   const navigate = useNavigate();
 
+  const [clicked, setClicked] = createSignal(false);
+
+  const goToFavoritePage = () => {
+    setClicked(true);
+    navigate("/favorite");
+  };
+
   // Fungsi untuk navigasi ke halaman Cart
   const goToCart = () => {
     navigate("/cart");
@@ -83,6 +92,12 @@ const EffortlessChic1: Component = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
+          <button class="fav" onClick={goToFavoritePage}>
+            <img
+              src={clicked() ? heartfull : heart}
+              alt="heart"
+            />
+          </button>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
@@ -113,7 +128,6 @@ const EffortlessChic1: Component = () => {
       <article class={styles.blogPost}>
         <h1>Effortless Chic: How to Achieve a Timeless Look Without
           Trying Too Hard</h1>
-        <div class={styles.metadata}>September 12, 2025 👁️ 3 mins read</div>
         <p>Looking stylish doesn’t mean following every new trend. A timeless, effortlessly chic look is all about understanding classic fashion elements and incorporating them into your wardrobe in a way that feels natural. Whether you’re dressing for a casual day out or a sophisticated evening event, mastering the art of effortless chic will elevate your style with minimal effort.</p>
 
         <section class={styles.section2}>

@@ -1,6 +1,8 @@
 import { createSignal, onMount } from "solid-js";
 import styles from "./history.module.css";
 import { useNavigate, useSearchParams, useLocation } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import profile from '../img/UserCircle (2).svg';
 import logowhite from '../img/logowhite.png';
@@ -27,6 +29,13 @@ export default function History() {
     const [searchParams] = useSearchParams();
     const location = useLocation();
     const userId = searchParams.user_id;
+
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
+    };
 
     // Consolidated navigation function
     // Navigation functions
@@ -59,7 +68,7 @@ export default function History() {
 
     onMount(async () => {
         if (!userId) return;
-    
+
         try {
             // Fetch user profile image
             const profileResponse = await fetch(`http://127.0.0.1:8080/user/${userId}`);
@@ -69,7 +78,7 @@ export default function History() {
                     setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
                 }
             }
-    
+
             // Fetch order history (replace with your actual API endpoint)
             const ordersResponse = await fetch(`http://127.0.0.1:8080/user/${userId}/orders`);
             if (ordersResponse.ok) {
@@ -112,6 +121,12 @@ export default function History() {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>

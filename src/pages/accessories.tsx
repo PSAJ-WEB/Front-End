@@ -1,57 +1,33 @@
-import { createSignal, createEffect } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { createSignal, createEffect, Show, onMount } from "solid-js";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
 import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
-import tas1groupred from '../img/1) Litchi Pattern Pillow Handbag/1 LPPH RED (Cover).svg';
-import tas1groupblack from '../img/1) Litchi Pattern Pillow Handbag/2 LPPH BLACK.svg';
-import tas1groupmint from '../img/1) Litchi Pattern Pillow Handbag/3 LPPH MINT.svg';
-import tas1grouppink from '../img/1) Litchi Pattern Pillow Handbag/4 LPPH PINK.svg';
-import tas2groupblackgrey from '../img/2 ) Retro Small Square Handbag/2 RSSH CHARCOAL.svg';
-import tas2groupbrown from '../img/2 ) Retro Small Square Handbag/1 RSSH BROWN (Cover).svg';
-import tas2groupijo from '../img/2 ) Retro Small Square Handbag/3 RSSH MATCHA.svg';
-import tas2groupbeige from '../img/2 ) Retro Small Square Handbag/4 RSSH CREAM.svg';
-import tas3groupa from '../img/3) Autumn Pearl Handbag/1 APH CREAM (Cover).svg';
-import tas3groupb from '../img/3) Autumn Pearl Handbag/2 APH BLACK.svg';
-import tas3groupc from '../img/3) Autumn Pearl Handbag/3 APH GREY.svg';
-import tas3groupd from '../img/3) Autumn Pearl Handbag/4 APH PINK.svg';
-import tas4groupblack from '../img/4) Frosted Bowling Handbag/1 FBH BLACK (Cover).svg';
-import tas4groupbrown from '../img/4) Frosted Bowling Handbag/2 FBH BROWN.svg';
-import tas4groupgrey from '../img/4) Frosted Bowling Handbag/3 FBH GREY.svg';
-import tas4grouporange from '../img/4) Frosted Bowling Handbag/4 FBH  BUTTERSCOTCH.svg';
-import tas5groupblack from '../img/5) Versatile Shoulder Bag/2 VSB BLACK.svg';
-import tas5groupbrown from '../img/5) Versatile Shoulder Bag/1 VSB DESERT (Cover).svg';
-import tas5groupbeige from '../img/5) Versatile Shoulder Bag/3 VSB OAT.svg';
-import tas5grouppink from '../img/5) Versatile Shoulder Bag/4 VSB LEMONADE.svg';
-import tas6groupblack from '../img/6) Rhombus Shoulder Bag/2 RSB BLACK.svg';
-import tas6groupnavy from '../img/6) Rhombus Shoulder Bag/1 RSB BOLD DENIM (Cover).svg';
-import tas6groupdenim from '../img/6) Rhombus Shoulder Bag/3 RSB LIGHT DENIM.svg';
-import tas7groupblack from '../img/7) Diamond Chain Shoulder Bag/1 DCSB BLACK (Cover).svg';
-import tas7groupsalmon from '../img/7) Diamond Chain Shoulder Bag/2 DCSB SALMON.svg';
-import tas7groupseafoam from '../img/7) Diamond Chain Shoulder Bag/3 DCSB SEAFOAM.svg';
-import tas7groupbone from '../img/7) Diamond Chain Shoulder Bag/4 DCSB BONE.svg';
-import tas8grouplightdenim from '../img/8) American Shoulder Bag/1 ASB LIGHT DENIM (Cover).svg';
-import tas8groupashgrey from '../img/8) American Shoulder Bag/2 ASB GREY.svg';
-import tas8groupbrown from '../img/8) American Shoulder Bag/3 ASB BROWN.svg';
-import tas8grouplightgrey from '../img/8) American Shoulder Bag/4 ASB LIGHT GREY.svg';
-import clothes1 from '../img/Theyy Wearr Blouses Catalogue/Line Drawing Floral Pattern Blouse.svg';
-import clothes2 from '../img/Theyy Wearr Blouses Catalogue/Ruffle Collar Design Blouse.svg';
-import glasses from '../img/Hippie  Mod Glasses.svg';
-import belt1 from '../img/Theyy Wearr Belts Catalogue/Black Double O-Ring Belt.svg';
-import belt2 from '../img/Theyy Wearr Belts Catalogue/Almond Belt Leather.svg';
-import lunettesdesoleilm from '../img/Lunettes De Soleil M.svg';
-import metalsunglasses from '../img/Metal Sunglasses.svg';
-import aviatorsunglasses from '../img/Aviator Sunglasses.svg';
-import blackfauxbelt from '../img/Faux Leather Belt with buckle.svg';
-import thinbrownfauxbelt from '../img/Thin Brown Faux Leather Belt.svg'
-import thinbeltsquarebuckle from '../img/Thin Belt with Square Buckle.svg'
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
 import './accessories.css';
 
+interface ProductColor {
+    color: string;
+    color_name?: string;
+    color_code?: string;
+    image: string;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: string;
+    default_image: string;
+    current_image: string;
+    colors: ProductColor[];
+    liked: boolean;
+    likes_count: number;
+}
 const Accessories = () => {
     const toggleLike = (index) => {
         const updatedProducts = products().map((product, i) => {
@@ -62,77 +38,108 @@ const Accessories = () => {
         });
         setProducts(updatedProducts);
     };
+        const [products, setProducts] = createSignal<Product[]>([]);
+    
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+    const userId = searchParams.user_id;
     const [searchQuery, setSearchQuery] = createSignal("");
-    const [products, setProducts] = createSignal([
-        {
-            name: "Lunettes De Soleil M",
-            category: "Accessories",
-            price: "112.300 IDR",
-            image: lunettesdesoleilm,
-            defaultImage: lunettesdesoleilm,
-            colors: [
-                { color: "glasses1", image: lunettesdesoleilm },
-            ],
-            liked: false
-        },
-        {
-            name: "Metal Sunglasses",
-            category: "Accessories",
-            price: "86.900 IDR",
-            image: metalsunglasses,
-            defaultImage: metalsunglasses,
-            colors: [
-                { color: "glasses2", image: metalsunglasses },
-            ],
-            liked: false
-        },
-        {
-            name: "Aviator Sunglasses",
-            category: "Accessories",
-            price: "79.900 IDR",
-            image: aviatorsunglasses,
-            defaultImage: aviatorsunglasses,
-            colors: [
-                { color: "glasses3", image: aviatorsunglasses },
-            ],
-            liked: false
-        },
-        {
-            name: "Black Faux Belt",
-            category: "Accessories",
-            price: "143.300 IDR",
-            image: blackfauxbelt,
-            defaultImage: blackfauxbelt,
-            colors: [
-                { color: "blackfaux", image: blackfauxbelt },
-            ],
-            liked: false
-        },
-        {
-            name: "Thin Brown Faux Belt",
-            category: "Accessories",
-            price: "96.200 IDR",
-            image: thinbrownfauxbelt,
-            defaultImage: thinbrownfauxbelt,
-            colors: [
-                { color: "belt2", image: thinbeltsquarebuckle },
-            ],
-            liked: false
-        },
-        {
-            name: "Thin Belt Square Buckle",
-            category: "Accessories",
-            price: "110.400 IDR",
-            image: thinbeltsquarebuckle,
-            defaultImage: thinbeltsquarebuckle,
-            colors: [
-                { color: "belt3", image: thinbeltsquarebuckle },
-            ],
-            liked: false
-        },
-    ]);
+    const [showAuthPopup, setShowAuthPopup] = createSignal(false);
+    const [onlineUsers, setOnlineUsers] = createSignal([]);
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
 
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
+    const [clicked, setClicked] = createSignal(false);
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigateWithUserId("/favorite");
+    };
+
+    const formatImageUrl = (imagePath: string) => {
+        if (!imagePath) return '/fallback-image.jpg';
+        return imagePath.includes('http')
+            ? imagePath
+            : `http://127.0.0.1:8080/uploads/products/${imagePath}`;
+    };
+     onMount(async () => {
+            const activeUserId = currentUserId() || userId || null;
+            if (activeUserId) {
+                setCurrentUserId(activeUserId);
+                const userResponse = await fetch(`http://127.0.0.1:8080/user/${activeUserId}`);
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    setProfileImage(userData.img ? `http://127.0.0.1:8080/uploads/${userData.img}` : null);
+                }
+            }
+            await fetchProducts();
+        });
+    const fetchProducts = async () => {
+        try {
+            setIsLoading(true);
+            const activeUserId = currentUserId() || userId;
+
+            const [productsRes, colorsRes, likesRes] = await Promise.all([
+                fetch('http://127.0.0.1:8080/api/products'),
+                fetch('http://127.0.0.1:8080/api/product-colors'),
+                activeUserId
+                    ? fetch(`http://127.0.0.1:8080/user/${activeUserId}/likes`)
+                    : Promise.resolve(null)
+            ]);
+
+            if (!productsRes.ok || !colorsRes.ok) {
+                throw new Error('Failed to fetch products or colors');
+            }
+
+            const productsData = await productsRes.json();
+            const colorsData = await colorsRes.json();
+            const likedProducts = likesRes ? await likesRes.json() : [];
+
+            const formattedProducts = productsData
+                .filter(product => product.category === 'Accessories') // Only get Bags category
+                .map(product => {
+                    const productColors = colorsData.filter(color => color.product_id === product.id);
+                    const isLiked = likedProducts.some(liked => liked.id === product.id);
+
+                    return {
+                        id: product.id,
+                        name: product.name,
+                        category: product.category,
+                        price: product.price,
+                        default_image: formatImageUrl(product.default_image),
+                        current_image: formatImageUrl(product.default_image),
+                        colors: productColors.length > 0
+                            ? productColors.map(color => ({
+                                color: color.color_name || color.color,
+                                color_code: getColorCode(color.color_name || color.color),
+                                image: formatImageUrl(color.image)
+                            }))
+                            : [{
+                                color: 'default',
+                                color_code: '#CCCCCC',
+                                image: formatImageUrl(product.default_image)
+                            }],
+                        liked: isLiked,
+                        likes_count: product.likes_count || 0
+                    };
+                });
+
+            setProducts(formattedProducts);
+        } catch (err) {
+            console.error('Error fetching products:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+        } else {
+            navigate(path);
+        }
+    };
     // Fungsi untuk menyorot huruf yang cocok
     const highlightText = (text, query) => {
         if (!query) return text;
@@ -183,9 +190,78 @@ const Accessories = () => {
         setProducts(updatedProducts);
     };
 
-    const goToCart = () => navigate("/cart");
-    const goToAccount = () => navigate("/account");
+    const goToCart = () => navigateWithUserId("/cart");
+    const goToAccount = () => navigateWithUserId("/account");
+    const [isLoading, setIsLoading] = createSignal(false);
+    // const [searchQuery, setSearchQuery] = createSignal("");
+    const goToProductDetail = (productId: number) => {
+        if (userId) {
+          navigate(`/products/detail/${productId}?user_id=${userId}`);
+        } else {
+          navigate(`/products/detail/${productId}`);
+        }
+        // Scroll ke atas halaman
+        window.scrollTo(0, 0);
+      };
+    //   const [searchParams] = useSearchParams();
+    //   const userId = searchParams.user_id;
+    //   const [clicked, setClicked] = createSignal(false);
 
+    const getColorCode = (colorName) => {
+        const colorMap = {
+            // Basic colors
+            red: '#8A191F',
+            mint: '#A1BEAB',
+            pink: '#E0A091',
+            green: '#00FF00',
+            black: '#000000',
+            white: '#FFFFFF',
+            blue: '#2196F3',
+            orange: '#CC7633',
+            navy: '#1F2A39',
+            cream: '#FFFDD0',
+
+            // Specific product colors
+            glasses: '#D8CDBD',
+            belt2: '#493635',
+            belt3: '#302E2F',
+            clothes1: '#D2CFC5',
+            clothes2: '#A79686',
+            clothes3: '#C1997D',
+            beige3: '#F5ECE1',
+            grey2: '#B8ABA3',
+            denim2: '#798999',
+            blackfaux: '#2C2430',
+            domgrey: '#413F41',
+            blackgrey: '#212129',
+            brown: '#704324',
+            brown2: '#8C6446',
+            brownlight: '#A88B63',
+            beige2: '#DDD1B2',
+            pinkmuda: '#E4BABB',
+            beige: '#E5D2B2',
+            ijo: '#594D0F',
+            lightgrey: '#CC7633', // Note: Same as orange
+            ashgrey: '#CC7633',  // Note: Same as orange
+            blacky: '#222427',
+            denim: '#7F90A1',
+            grey: 'rgba(100, 89, 87, 1)',
+
+            // Gradient colors (returning first color as fallback)
+            gradient1: 'linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(221, 176, 104, 1))',
+            gradient2: 'linear-gradient(to bottom, rgba(123, 110, 106, 1), rgba(221, 176, 104, 1))',
+            gradient3: 'linear-gradient(to bottom, rgba(190, 128, 114, 1), rgba(221, 176, 104, 1))',
+            gradient4: 'linear-gradient(to bottom, rgba(233, 217, 197, 1), rgba(221, 176, 104, 1))',
+
+
+            // Special glasses gradients (returning first color as fallback)
+            glasses1: 'radial-gradient(circle, hsla(220, 15%, 24%, 1) 30%, hsla(53, 4%, 82%, 1) 100%)',
+            glasses2: 'radial-gradient(circle, #717A71 30%, #CDC6AA 100%)',
+            glasses3: 'radial-gradient(circle, #FFD16E 15%, #2B1F1A 70%)',
+        };
+
+        return colorMap[colorName.toLowerCase()] || '#CCCCCC';
+    };
     return (
         <div class="landing-page">
             {/* Header */}
@@ -195,19 +271,41 @@ const Accessories = () => {
                 </div>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products" class="active">Products</a></li>
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/blogpage">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} class="active">Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <div class="favorites-indicator" onClick={goToFavoritePage}>
+                        <img
+                            src={heart}
+                            alt="Favorites"
+                            class="favorites-icon"
+                        />
+                        <Show when={favoriteCount() > 0}>
+                            <span class="favorites-badge">{favoriteCount()}</span>
+                        </Show>
+                    </div>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
-                    <button class="dash-account-btn" onClick={goToAccount}>
-                        <img src={accountIcon} alt="Account" />
-                    </button>
+                    <div class="dash-account-btn" onClick={goToAccount}>
+                        <img
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover'
+                            }}
+                        />
+                        {onlineUsers().some(u => u.id === userId) && (
+                            <div class="online-status-dot"></div>
+                        )}
+                    </div>
                 </div>
             </header>
 
@@ -245,30 +343,52 @@ const Accessories = () => {
                 </div>
 
                 <div class="products-grid3">
-                    {filteredProducts().map((product, index) => (
-                        <div class="pro-card" key={product.name} id={product.name}>
-                            <div class="product-imagee">
-                                <img src={product.image} alt={product.name} class="pro-image" />
+                    {products().filter(p => !searchQuery() ||
+                        p.name.toLowerCase().includes(searchQuery().toLowerCase())).map((product, index) => (
+                            <div
+                                id={`product-${product.id}`}
+                                class={`pro-card`}
+                                key={product.id}
+                                onClick={() => goToProductDetail(product.id)}
+                                onMouseLeave={() => setMainImage(product.id, null)}
+                            >
+                                <div class="product-img">
+                                    <img
+                                        src={product.current_image} // Tidak perlu fallback karena sudah di-handle di setMainImage
+                                        alt={product.name}
+                                        onError={(e) => {
+                                            e.currentTarget.src = '/fallback-image.jpg';
+                                            e.currentTarget.onerror = null;
+                                        }}
+                                    />
+                                </div>
+                                <span
+                                    class="favorite-button"
+                                    onClick={(e) => toggleLike(product.id, index, e)}
+                                    classList={{ 'loading': isLoading() }}
+                                >
+                                    <img
+                                        src={product.liked ? heartfull : heart}
+                                        alt={product.liked ? "Unlike" : "Like"}
+                                    />
+                                </span>
+                                <p class="section-product">{product.category}</p>
+                                <h3 innerHTML={product.name}></h3>
+                                <p class="price">{product.price}</p>
+                                <div class="color-optionss">
+                                    {product.colors.map((color) => (
+                                        <span
+                                            class="color"
+                                            style={{
+                                                background: color.color_code || getColorCode(color.color),
+                                            }}
+                                            onMouseEnter={() => setMainImage(product.id, color.image)}
+                                            onMouseLeave={() => setMainImage(product.id, null)} // Pastikan ini di-set ke null
+                                        />
+                                    ))}
+                                </div>
                             </div>
-                            <p class="section-products">{product.category}</p>
-                            <span class="heart-icon" onClick={() => toggleLike(index)}>
-                                <img src={product.liked ? heartfull : heart} alt="Like" />
-                            </span>
-                            <h3 class="name-product">
-                                <span innerHTML={highlightText(product.name, searchQuery())}></span>
-                            </h3>
-                            <p class="price">{product.price}</p>
-                            <div class="color-optionss" onMouseLeave={() => setMainImage(index, product.defaultImage)}>
-                                {product.colors.map((color, colorIndex) => (
-                                    <span
-                                        class={`color ${color.color}`}
-                                        onMouseOver={() => setMainImage(index, color.image)}
-                                        key={colorIndex}
-                                    ></span>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </section>
 

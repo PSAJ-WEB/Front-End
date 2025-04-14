@@ -50,6 +50,13 @@ const CheckoutPage = () => {
     const [notes, setNotes] = createSignal('');
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string | null>(null);
+    // const [clicked, setClicked] = createSignal(false);
+
+    // const goToFavoritePage = () => {
+    //     setClicked(true);
+    //     navigate("/favorite");
+    // };
+
     // Fungsi untuk navigasi ke halaman Cart
     const goToCart = () => {
         navigate("/cart");
@@ -357,7 +364,6 @@ const CheckoutPage = () => {
                 </nav>
 
                 <div class="dash-auth-buttons">
-                    {/* Tombol Favorit dengan Badge */}
                     <button class="fav" onClick={goToFavoritePage}>
                         <img
                             src={clicked() ? heartfull : heart}

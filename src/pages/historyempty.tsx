@@ -1,6 +1,8 @@
 import { Component, createSignal, onMount } from "solid-js";
 import styles from "./history.module.css";
 import { useNavigate, useSearchParams } from "@solidjs/router";
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import profile from '../img/UserCircle (2).svg';
 import logowhite from '../img/logowhite.png';
@@ -25,22 +27,22 @@ const HistoryEmpty: Component = () => {
 
     onMount(async () => {
         if (!userId) return;
-    
+
         try {
             // Fetch user profile image
             const profileResponse = await fetch(`http://127.0.0.1:8080/user/${userId}`);
             if (!profileResponse.ok) {
                 throw new Error('Failed to fetch profile');
             }
-    
+
             const data = await profileResponse.json();
             if (data.img) {
                 setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
             }
-    
+
             // Update user activity
             updateUserActivity();
-    
+
             // Optional: Fetch online users if needed
             const onlineUsersResponse = await fetch('http://127.0.0.1:8080/online-users');
             if (onlineUsersResponse.ok) {
@@ -53,7 +55,7 @@ const HistoryEmpty: Component = () => {
     });
     const updateUserActivity = (): void => {
         if (!userId) return;
-    
+
         fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
             method: 'POST',
             headers: {
@@ -64,6 +66,12 @@ const HistoryEmpty: Component = () => {
         });
     };
 
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
+    };
     const goToProducts = () => navigateWithUserId("/products");
     const goToAccount = () => navigateWithUserId("/account");
     const goToAddress = () => navigateWithUserId("/address");
@@ -89,6 +97,12 @@ const HistoryEmpty: Component = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>

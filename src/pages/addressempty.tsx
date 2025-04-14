@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams, useLocation } from "@solidjs/router";
 import styles from './address.module.css';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import befooter from '../img/befooter.png';
@@ -42,6 +44,13 @@ const AddressEmpty = () => {
                 'Content-Type': 'application/json',
             },
         }).catch(console.error);
+    };
+
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
     };
 
     // Navigation functions
@@ -134,9 +143,16 @@ const AddressEmpty = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
+                    {/* Tombol Account dengan Navigasi */}
                     <button class="dash-account-btn" onClick={goToAccount}>
                         <img src={accountIcon} alt="Account" />
                     </button>

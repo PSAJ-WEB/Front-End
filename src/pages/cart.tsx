@@ -53,9 +53,6 @@ export default function CartPage() {
             navigate(path);
         }
     };
-
-
-
     const goToDashboard = () => navigateWithUserId("/");
     const goToCart = () => navigateWithUserId("/cart");
     const goToAccount = () => navigateWithUserId("/account");

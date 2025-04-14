@@ -4,6 +4,8 @@ import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
+import heart from '../img/Heart.svg';
+import heartfull from '../img/Heart (1).svg';
 import translate from '../img/Translate.svg';
 import fashiontips from '../img/fashiontips.png';
 import mixnmatch from '../img/mixnmatch.png';
@@ -17,6 +19,13 @@ import './blogpage.css';
 
 const BlogPage = () => {
     const navigate = useNavigate();
+    
+    const [clicked, setClicked] = createSignal(false);
+
+    const goToFavoritePage = () => {
+        setClicked(true);
+        navigate("/favorite");
+    };
 
     // Fungsi untuk navigasi ke halaman Cart
     const goToCart = () => {
@@ -82,6 +91,12 @@ const BlogPage = () => {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
