@@ -96,19 +96,7 @@ const handleSubmit = async (e) => {
             </button>
           </form>
 
-          <div class={styles.loginDivider}>
-            <span>Or</span>
           </div>
-
-          <button class={styles.loginGoogleButton}>
-            <img src={googleIcon} alt="Google" class={styles.loginGoogleIcon} />
-            Log In with Google
-          </button>
-
-          <p class={styles.loginRegisterText}>
-            Don't have an account? <a href="/register" class={styles.loginRegisterLink}>Register</a>
-          </p>
-        </div>
       </div>
     </div>
   );

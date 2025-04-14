@@ -39,8 +39,8 @@
   .addressCard {
     background-color: #1212120F;
     padding: 1.5rem;
-    border-radius: 4px;
   }
+  
   
   .addressName {
     font-weight: 500;
@@ -60,7 +60,6 @@
     font-size: 0.9rem;
     cursor: pointer;
     padding: 0;
-    text-decoration: underline;
   }
   
   /* Payment Method Styles */
@@ -86,9 +85,7 @@
 }
 
 .paymentOption {
-  border: 1px solid #e0e0e0;
   padding: 0.75rem;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -101,12 +98,11 @@
 
   /* Order Summary Styles */
   .orderSummary {
-    background-color: #f9f9f9;
-    padding: 1.5rem;
-    border-radius: 4px;
+    padding: 0.1rem;
   }
   
   .orderItem {
+    font-weight: 550 !important;
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.75rem;
@@ -121,10 +117,9 @@
   /* Notes Styles */
   .notesTextarea {
     width: 100%;
-    min-height: 100px;
+    min-height: 200px;
     padding: 1rem;
     border: 1px solid #e0e0e0;
-    border-radius: 4px;
     font-family: inherit;
     resize: vertical;
   }

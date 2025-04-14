@@ -32,6 +32,8 @@ interface LikeResponse {
   success?: boolean;
   message?: string;
 }
+
+
 const ProductPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -43,6 +45,7 @@ const ProductPage = () => {
   const [products, setProducts] = createSignal<Product[]>([]);
   const [loading, setLoading] = createSignal(true);
   const [totalFavorites, setTotalFavorites] = createSignal(0);
+  
   // Frontend code to fetch products
   const fetchProducts = async (search = "") => {
     try {
@@ -194,11 +197,7 @@ const ProductPage = () => {
   };
 
 
-  const handleImageError = (e: Event) => {
-    const target = e.currentTarget as HTMLImageElement;
-    target.src = '/fallback-image.jpg';
-    target.onerror = null; // Prevent infinite loop if fallback also fails
-  };
+
   // Transform function to handle image URLs
   const transformProductData = (product) => {
     return {

@@ -5,17 +5,20 @@ import { formatPrice } from "../pages/formatprice";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
+import trash from '../img/Trash.svg'
 import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
+import './cart.css'
 
 
 interface CartItem {
     id: number;
     product_id: number;
     product_name: string;
+    product_category: string;  // Changed from category to product_category
     product_image: string | null;
     color: string;
     color_code: string;
@@ -32,10 +35,11 @@ export default function CartPage() {
     const [selectAll, setSelectAll] = createSignal(false);
     const [selectedItems, setSelectedItems] = createSignal<number[]>([]);
     const [totalPrice, setTotalPrice] = createSignal(0);
-     const [profileImage, setProfileImage] = createSignal<string | null>(null);
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const params = useParams();
+    const orderId = searchParams.order_id;
     const navigate = useNavigate();
-    
+
     const [error, setError] = createSignal<string | null>(null);
     const [clicked, setClicked] = createSignal(false);
 
@@ -49,7 +53,8 @@ export default function CartPage() {
             navigate(path);
         }
     };
-    
+
+
 
     const goToDashboard = () => navigateWithUserId("/");
     const goToCart = () => navigateWithUserId("/cart");
@@ -80,24 +85,52 @@ export default function CartPage() {
 
     // Fetch cart items from backend
     createEffect(async () => {
+        if (!userId) {
+            navigate("/account");
+            return;
+        }
+        if (!userId) return;
         try {
-            const response = await fetch(`http://localhost:8080/user/${params.userId}/cart`);
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.img) {
+                    setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+
+        try {
+            setLoading(true);
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart`);
+
             if (!response.ok) throw new Error("Failed to fetch cart");
+
             const data = await response.json();
-            setCartItems(data.items);
-            setTotalPrice(data.total_price);
-            setLoading(false);
+            console.log("Cart data:", data);
+
+            // Ensure we're using the items array from the response
+            setCartItems(data.items || []);
+            setTotalPrice(data.total_price || 0);
         } catch (error) {
             console.error("Error fetching cart:", error);
+            setError(error.message);
+        } finally {
             setLoading(false);
         }
     });
-
     const updateQuantity = async (id: number, newQuantity: number) => {
+        if (!userId) {
+            console.error("No user ID found");
+            return;
+        }
+
         if (newQuantity < 1) return;
 
         try {
-            const response = await fetch(`http://localhost:8080/user/${params.userId}/cart/${id}`, {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -119,9 +152,20 @@ export default function CartPage() {
         }
     };
 
+    const [deletingId, setDeletingId] = createSignal<number | null>(null);
+
     const removeItem = async (id: number) => {
+        if (!userId) {
+            console.error("No user ID found");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to remove this item from your cart?")) {
+            return;
+        }
+
         try {
-            const response = await fetch(`http://localhost:8080/user/${params.userId}/cart/${id}`, {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart/${id}`, {
                 method: "DELETE"
             });
 
@@ -135,9 +179,9 @@ export default function CartPage() {
             recalculateTotal();
         } catch (error) {
             console.error("Error removing item:", error);
+            alert("Failed to remove item. Please try again.");
         }
     };
-
     const toggleSelectItem = (id: number) => {
         if (selectedItems().includes(id)) {
             setSelectedItems(selectedItems().filter(itemId => itemId !== id));
@@ -147,69 +191,161 @@ export default function CartPage() {
     };
 
     const toggleSelectAll = () => {
-        setSelectAll(!selectAll());
-        if (!selectAll()) {
+        const newSelectAll = !selectAll();
+        setSelectAll(newSelectAll);
+
+        if (newSelectAll) {
+            // Select semua item
             setSelectedItems(cartItems().map(item => item.id));
         } else {
+            // Unselect semua item
             setSelectedItems([]);
         }
     };
+    const [cartCount, setCartCount] = createSignal(0);
+
+    const fetchCartCount = async () => {
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart/count`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setCartCount(data.count || 0);
+        } catch (error) {
+            console.error('Error fetching cart count:', error);
+        }
+    };
+
+    const [onlineUsers, setOnlineUsers] = createSignal<{ id: string }[]>([]);
 
     const recalculateTotal = () => {
         const selected = cartItems().filter(item => selectedItems().includes(item.id));
         const newTotal = selected.reduce((total, item) => {
-            return total + (parseFloat(item.price) * item.quantity);
+            // Ensure price is treated as a number
+            const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+            return total + (price * item.quantity);
         }, 0);
         setTotalPrice(newTotal);
     };
+    createEffect(() => {
+        if (userId) {
+            fetchCartCount();
+            fetchUserProfile();
 
+            // Fetch online users (if needed)
+            fetch('http://127.0.0.1:8080/online-users')
+                .then(res => res.json())
+                .then(setOnlineUsers)
+                .catch(console.error);
+        }
+    });
+
+    const fetchUserProfile = async () => {
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.img) {
+                    setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    };
+
+    // Jalankan recalculateTotal setiap kali selectedItems atau cartItems berubah
     createEffect(() => {
         recalculateTotal();
+
+        // Update status selectAll berdasarkan apakah semua item terpilih
+        if (cartItems().length > 0) {
+            setSelectAll(selectedItems().length === cartItems().length);
+        }
     });
 
     const handleCheckout = async () => {
-        if (selectedItems().length === 0) return;
+        if (selectedItems().length === 0) {
+            alert("Please select at least one item to checkout");
+            return;
+        }
+
+        if (!userId) {
+            console.error("No user ID found");
+            navigate("/account");
+            return;
+        }
 
         try {
-            // Create an order with selected items
+            // Prepare order items with proper data types
             const orderItems = cartItems()
                 .filter(item => selectedItems().includes(item.id))
                 .map(item => ({
+                    product_id: item.product_id,
                     product_name: item.product_name,
-                    product_image: item.product_image,
+                    product_image: item.product_image || null,
                     color: item.color,
                     color_code: item.color_code,
                     quantity: item.quantity,
-                    price: parseFloat(item.price)
+                    // Clean the price by removing the currency and normalizing the format
+                    price: item.price.replace(/[^\d.,]/g, '').replace('.', '').replace(',', '.'),
+                    category: item.product_category || 'general'
                 }));
+            // Calculate total amount
+            const totalAmount = orderItems.reduce((sum, item) => {
+                const price = parseFloat(item.price);
+                return sum + (price * item.quantity);
+            }, 0);
 
-            const response = await fetch(`http://localhost:8080/user/${params.userId}/order`, {
+            console.log("Submitting order:", {
+                total_amount: totalAmount.toFixed(2),
+                items: orderItems
+            });
+
+            const orderData = {
+                total_amount: totalAmount.toFixed(2),
+                items: orderItems,
+                address_id: null,
+                notes: null
+            };
+            console.log("Order data to be sent:", JSON.stringify(orderData, null, 2));
+
+            // Then send it
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/order`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ items: orderItems })
+                body: JSON.stringify(orderData)
             });
 
-            if (!response.ok) throw new Error("Failed to create order");
 
-            // Remove ordered items from cart
-            await fetch(`http://localhost:8080/user/${params.userId}/cart/clear`, {
-                method: "DELETE"
-            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.message || "Failed to create order");
+            }
 
-            // Refresh cart
-            setCartItems([]);
+            const result = await response.json();
+            console.log("Order created:", result);
+
+            // Update UI
+            setCartItems(prev => prev.filter(item => !selectedItems().includes(item.id)));
             setSelectedItems([]);
             setTotalPrice(0);
+            fetchCartCount();
 
-            // Navigate to orders page or success page
-            navigate(`/user/${params.userId}/orders`);
-        } catch (error) {
+            // Navigate to checkout page
+            navigate(`/checkout/${userId}?order_id=${orderId}`);
+                        } catch (error) {
             console.error("Error during checkout:", error);
+            alert(`Checkout failed: ${error.message}`);
         }
     };
-
     return (
         <div class="Container">
             {/* Your existing header */}
@@ -227,8 +363,17 @@ export default function CartPage() {
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
+                    <button class="fav" onClick={goToFavoritePage}>
+                        <img
+                            src={clicked() ? heartfull : heart}
+                            alt="heart"
+                        />
+                    </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
+                        {cartCount() > 0 && (
+                            <span class="cart-badge">{cartCount()}</span>
+                        )}
                     </button>
                     <button class="dash-account-btn" onClick={goToAccount}>
                         <img
@@ -248,75 +393,89 @@ export default function CartPage() {
             <main class="main-content">
                 <h1 class="page-title">Shopping Cart</h1>
 
-                <Show when={!loading()} fallback={<div>Loading cart...</div>}>
+                <Show when={!loading()} fallback={<div class="load">Loading cart...</div>}>
                     <Show when={cartItems().length > 0} fallback={<div class="empty-cart-message">Your cart is empty</div>}>
-                        <div class="cart-items">
-                            {cartItems().map((item) => (
-                                <div class="cart-item">
-                                    <div class="item-select">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedItems().includes(item.id)}
-                                            onChange={() => toggleSelectItem(item.id)}
-                                        />
-                                    </div>
-                                    <div class="item-image">
-                                        <Show when={item.product_image} fallback={<div class="image-placeholder">No Image</div>}>
-                                            <img src={item.product_image} alt={item.product_name} />
-                                        </Show>
-                                    </div>
-                                    <div class="item-details">
-                                        <div class="item-name">{item.product_name}</div>
-                                        <div class="item-color">
-                                            <span>Color</span>
-                                            <div class="color-circle" style={{ background: item.color_code }}></div>
-                                            <span>{item.color}</span>
-                                        </div>
-                                        <div class="item-quantity">
-                                            <span>Quantity</span>
-                                            <div class="quantity-controls">
-                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
-                                                <input type="text" value={item.quantity} readonly />
-                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
-                                            </div>
-                                        </div>
-                                        <div class="item-price">{formatPrice(parseFloat(item.price))}</div>
-                                    </div>
-                                    <div class="item-remove">
-                                        <button onClick={() => removeItem(item.id)}>
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                            </svg>
-                                        </button>
+                        <div class="cart-items-container">
+                            <div class="cart-items">
+                                <div class="select-all-container">
+                                    <div class="select-all">
+                                        <input id="select-all" type="checkbox" checked={selectAll()} onChange={toggleSelectAll} />
+                                        <label for="select-all">Select All</label>
                                     </div>
                                 </div>
-                            ))}
+                                {cartItems().map((item) => (
+                                    <div class="cart-item" key={item.id}>
+                                        <div class="item-select">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedItems().includes(item.id)}
+                                                onChange={() => toggleSelectItem(item.id)}
+                                            />
+                                        </div>
+                                        <div class="item-image">
+                                            <Show when={item.product_image} fallback={<div class="image-placeholder">No Image</div>}>
+                                                <img
+                                                    src={item.product_image.includes('http')
+                                                        ? item.product_image
+                                                        : `http://127.0.0.1:8080/uploads/products/${item.product_image}`}
+                                                    alt={item.product_name}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = '/fallback-image.jpg';
+                                                        e.currentTarget.onerror = null;
+                                                    }}
+                                                />
+                                            </Show>
+                                        </div>
+                                        <div class="item-details">
+                                            <div class="item-category">{item.product_category}</div>                                        <div class="item-color">
+                                                <div class="item-name">{item.product_name}</div>
+                                                <span>Color</span>
+                                                <div class="color-circle" style={{ background: item.color_code, "border": "1px solid #ddd" }} ></div>
+                                                {/* <span>{item.color}</span> */}
+                                            </div>
+                                            <div class="item-quantity">
+                                                <span class="quantity-label">Quantity</span>
+                                                <div class="quantity-controls">
+                                                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>−</button>
+                                                    <span>{item.quantity}</span>
+                                                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="item-price">
+                                                {item.price}
+                                            </div>
+                                        </div>
+                                        <button class="remove-btn" onClick={() => removeItem(item.id)} disabled={deletingId() === item.id}>
+                                            {deletingId() === item.id ? (
+                                                <span class="loading-spinner"></span> // Add appropriate spinner styling
+                                            ) : (
+                                                <img src={trash} alt="Remove item" />
+                                            )}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         <div class="cart-footer">
                             <div class="cart-info">
-                                <div class="select-all">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectAll()}
-                                        onChange={toggleSelectAll}
-                                    />
-                                    <label>Select All</label>
-                                </div>
                                 <div class="total-orders">
-                                    <span>Total Orders</span>
+                                    <span>
+                                        Total Orders {selectedItems().length > 0}
+                                    </span>
                                     <span class="total-price">{formatPrice(totalPrice())}</span>
                                 </div>
-                            </div>
 
-                            <button
-                                class="checkout-button"
-                                disabled={selectedItems().length === 0}
-                                onClick={handleCheckout}
-                            >
-                                Checkout
-                            </button>
+                                <button
+                                    class="checkout-button"
+                                    disabled={selectedItems().length === 0}
+                                    onClick={handleCheckout}
+                                >
+                                    Checkout {selectedItems().length > 0}
+                                </button>
+                            </div>
                         </div>
                     </Show>
                 </Show>
