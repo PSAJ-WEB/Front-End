@@ -127,7 +127,7 @@ const ProductPage = () => {
     if (userId) {
       fetchUserProfile();
       fetchOnlineUsers();
-      awaitFetchFavoriteCount();
+      await FetchFavoriteCount();
       updateUserActivity();
 
       // Dapatkan produk yang sudah dilike oleh user

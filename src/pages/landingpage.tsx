@@ -218,7 +218,7 @@ const LandingPage = () => {
         </div>
         <nav class="navbar">
           <ul>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); handleNavigation("/dashboard"); }} class="active">Home</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); handleNavigation("/dashboard"); }}>Home</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); handleNavigation("/products"); }}>Products</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); handleNavigation("/about-us"); }}>About Us</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); handleNavigation("/blogpage"); }}>Blog</a></li>

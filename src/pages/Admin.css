@@ -5,6 +5,13 @@
   box-sizing: border-box;
   font-family: 'SF Pro Display'
 }
+#revenue-chart, 
+#pie-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  background: transparent;
+}
 
 body {
   background-color: #f8f9fa;
@@ -17,13 +24,14 @@ body {
   width: 100%;
   /* Menghapus max-width untuk tampilan full screen */
   height: 100%;
-  margin: 0 auto;
+  margin-left: auto;
 }
 
 .admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-left: auto;
   margin-bottom: 30px;
   width: 100%;
 }
@@ -76,6 +84,31 @@ body {
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 200px;
+}
+.stat-card2 {
+  margin-left: -110px;
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 270px;
+}
+.stat-card3{
+  margin-left: -150px;
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 210px;
+}
+.stat-card4{
+  margin-left: -250px;
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 220px;
 }
 
 .stat-header {
@@ -108,12 +141,144 @@ body {
   width: 100%;
 }
 
+/* Add to your Admin.css */
+/* Add these to your Admin.css */
+.data-tables {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 80%;
+  padding: 0 20px;
+}
+
+.table-section {
+  height: 407px;
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: 93.5%;
+}
+
+.table-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #000;
+  padding-bottom: 10px;
+}
+.table-section2 {
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: 125%;
+}
+
+.table-section2 h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #000;
+  padding-bottom: 10px;
+}
+
+/* Adjust AG Grid tables */
+.ag-theme-alpine {
+  --ag-font-family: 'SF Pro Display';
+  --ag-border-color: #eee;
+  --ag-header-background-color: grey;
+  --ag-odd-row-background-color: white;
+  --ag-row-hover-color: #f8f8f8;
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-height: 100%;
+  --ag-header-column-separator-width: 1px;
+  --ag-header-column-separator-color: #eee;
+}
+
+.ag-theme-alpine .ag-row {
+  height: 150px !important; /* Force row height */
+}
+
+.ag-theme-alpine .ag-header-cell {
+  font-weight: 600;
+  font-size: 14px;
+  color: #000;
+}
+
+.ag-theme-alpine .ag-cell {
+  display: flex;
+  align-items: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Add this to your Admin.css */
+.ag-theme-alpine.users-table .ag-row {
+  height: 42px !important;
+}
+
+.ag-theme-alpine.users-table .ag-cell {
+  display: flex;
+  align-items: center;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 14px;
+}
+
+.ag-theme-alpine .ag-cell {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Status badges */
+.status-badge {
+  display: flex;
+  justify-content: center;
+  justify-items: center;
+  width: 100px;
+  height: 35px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.online {
+  background-color: #e3f8e3;
+  color: #28a745;
+}
+
+.status-badge.offline {
+  background-color: #fbefef;
+  color: #dc3545;
+}
+
+/* Role colors */
+.admin-role {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+.user-role {
+  color: #1976d2;
+  font-weight: 500;
+}
+
 .revenue-chart-container {
+  height: 400px;
+  margin-left: 25px;
   flex: 1;
   background-color: white;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.revenue-header span {
+  color: black;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .chart-side {
@@ -123,11 +288,126 @@ body {
   gap: 20px;
 }
 
+/* Pie chart container styles */
 .donut-chart-container {
   background-color: white;
-  border-radius: 10px;
+  width: 320px;
+  border-radius: 5px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Add to your Admin.css */
+.category-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.category-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.category-count {
+  color: #666;
+}
+/* .category-details {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 5px;
+}
+
+.category-details h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.category-details ul {
+  list-style: none;
+  padding: 0;
+}
+
+.category-details li {
+  padding: 5px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+} */
+.category-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+/* User activity card */
+.user-activity-card {
+  height: auto; /* Changed from fixed height */
+  min-height: 300px;
+    margin-top: 20px;
+    margin-bottom: -500px;
+  width: 320px;
+  padding: 15px;
+  background: white;
+  border-radius: 5px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.user-activity-card h3 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.user-info h4 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.status-indicator {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-indicator.online {
+  background-color: #e3f8e3;
+  color: #28a745;
+}
+
+.status-indicator.offline {
+  background-color: #fbefef;
+  color: #dc3545;
 }
 
 .donut-chart {
@@ -155,19 +435,20 @@ body {
   gap: 8px;
   font-size: 14px;
 }
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.dot.tshirts {
+  background-color: #4e79a7;
 }
-
-.accessories {
-  background-color: #333;
+.dot.pants {
+  background-color: #f28e2b;
 }
-
-.clothes {
-  background-color: #666;
+.dot.accessories {
+  background-color: #e15759;
+}
+.dot.shoes {
+  background-color: #76b7b2;
+}
+.dot.outerwear {
+  background-color: #59a14f;
 }
 
 .revenue-header {
@@ -179,7 +460,7 @@ body {
 }
 
 .revenue-chart {
-  height: 250px;
+  height: 250px !important;
   display: flex;
   align-items: flex-end;
   width: 100%;
@@ -206,7 +487,9 @@ body {
   max-width: 24px;
   margin: 0 2px;
 }
-
+.table-section h2 {
+  margin-left: 15px;
+}
 .dark-bar {
   background-color: #333;
   border-radius: 2px 2px 0 0;
@@ -272,6 +555,10 @@ body {
   padding: 12px 8px;
   border-bottom: 1px solid #e0e0e0;
   font-size: 14px;
+}
+
+.ag-theme-alpine {
+  margin-left: 20px;
 }
 
 .product-image {
