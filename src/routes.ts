@@ -6,7 +6,7 @@ import Register from './pages/register';
 import Login from './pages/login';
 import Dashboard from './pages/dashboard';
 import BlogPage from './pages/blogpage';
-import Admin from './pages/adminpage';
+import Admin from './pages/admin'
 import BlogPage25Fashion1 from './pages/blogpage25fashion(1)';
 import BlogPage25Fashion2 from './pages/blogpage25fashion(2)';
 import BlogPage25Fashion3 from './pages/blogpage25fashion(3)';

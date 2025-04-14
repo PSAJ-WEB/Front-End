@@ -1,5 +1,5 @@
 import { Component, onMount, createSignal } from 'solid-js';
-import { useNavigate } from "@solidjs/router";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
 import heart from '../img/Heart.svg';
@@ -14,6 +14,43 @@ import accountIcon from '../img/UserCircle (2).svg'
 
 const BlogPage25Fashion2: Component = () => {
   const [activePage, setActivePage] = createSignal(2); // Misalnya, halaman aktif saat ini adalah 2
+
+  interface CartItem {
+    id: number;
+    product_id: number;
+    product_name: string;
+    product_image: string | null;
+    color: string;
+    color_code: string;
+    price: string;
+    quantity: number;
+  }
+
+  const [searchParams] = useSearchParams();
+  const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
+  const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+  const userId = searchParams.user_id;
+
+  const navigateWithUserId = (path: string) => {
+    const id = currentUserId() || userId;
+    if (id) {
+      navigate(`${path}?user_id=${id}`);
+      updateUserActivity(id);
+    } else {
+      navigate(path);
+    }
+  };
+
+  const updateUserActivity = async (userId: string) => {
+    try {
+      await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      console.error('Failed to update activity:', error);
+    }
+  };
 
   // Data halaman dan path-nya
   const pages = [
@@ -88,10 +125,10 @@ const BlogPage25Fashion2: Component = () => {
         </div>
         <nav class="navbar-blog">
           <ul>
-            <li><a href="/dashboard">Home</a></li>
-            <li><a href="/products">Products</a></li>
-            <li><a href="/about-us">About Us</a></li>
-            <li><a href="/blogpage" class="active">Blog</a></li>
+            <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+            <li><a onClick={() => navigateWithUserId("/products")} >Products</a></li>
+            <li><a onClick={() => navigateWithUserId("/about-us")} >About Us</a></li>
+            <li><a onClick={() => navigateWithUserId("/blogpage")} class="active">Blog</a></li>
           </ul>
         </nav>
         <div class="dash-auth-buttons">

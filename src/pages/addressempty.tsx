@@ -13,6 +13,8 @@ import './addressempty.css'
 
 const AddressEmpty = () => {
     const navigate = useNavigate();
+
+
     const [searchParams] = useSearchParams();
     const location = useLocation();
     const userId = searchParams.user_id;
@@ -136,10 +138,10 @@ const AddressEmpty = () => {
                 </div>
                 <nav class="navbar">
                     <ul>
-                        <li><a onClick={goToDashboard}>Home</a></li>
-                        <li><a onClick={goToProducts}>Products</a></li>
-                        <li><a onClick={goToAboutUs}>About Us</a></li>
-                        <li><a onClick={goToBlog}>Blog</a></li>
+                    <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")}>Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">

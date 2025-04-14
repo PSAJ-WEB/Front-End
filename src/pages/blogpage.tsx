@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
 import logo from '../img/logo.png';
@@ -19,7 +19,44 @@ import './blogpage.css';
 
 const BlogPage = () => {
     const navigate = useNavigate();
-    
+
+    interface CartItem {
+        id: number;
+        product_id: number;
+        product_name: string;
+        product_image: string | null;
+        color: string;
+        color_code: string;
+        price: string;
+        quantity: number;
+    }
+
+    const [searchParams] = useSearchParams();
+    const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+    const userId = searchParams.user_id;
+
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+            updateUserActivity(id);
+        } else {
+            navigate(path);
+        }
+    };
+
+    const updateUserActivity = async (userId: string) => {
+        try {
+            await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+        } catch (error) {
+            console.error('Failed to update activity:', error);
+        }
+    };
+
     const [clicked, setClicked] = createSignal(false);
 
     const goToFavoritePage = () => {
@@ -37,7 +74,7 @@ const BlogPage = () => {
     createEffect(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
-    
+
 
     // Fungsi untuk navigasi ke halaman Account
     const goToAccount = () => {
@@ -84,10 +121,10 @@ const BlogPage = () => {
                 </div>
                 <nav class="navbar-blog">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products">Products</a></li>
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/blogpage" class="active">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} >Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")} >About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")} class="active">Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">
@@ -169,8 +206,8 @@ const BlogPage = () => {
                             <p>Looking stylish doesn’t mean following every new trend. A timeless, effortlessly chic look is all about understanding classic fashion elements and incorporating them into your wardrobe in a way that feels natural.</p>
                             <button onClick={goToReadMore4} class="read-more">
                                 Read More
-                            </button>  
-                        </div>                      
+                            </button>
+                        </div>
                     </div>
                     <div class="blog-post-blog">
                         <img src={thepower} alt="Behind the Design" />
@@ -179,7 +216,7 @@ const BlogPage = () => {
                             <p>Accessories have the ability to take a simple outfit from basic to extraordinary. Whether it’s a bold statement necklace, a structured handbag, or the perfect pair of sunglasses, the right accessories can redefine your entire look.</p>
                             <button onClick={goToReadMore5} class="read-more">
                                 Read More
-                            </button>  
+                            </button>
                         </div>
                     </div>
                 </div>

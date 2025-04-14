@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { useSearchParams } from '@solidjs/router';
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
@@ -30,7 +31,44 @@ const AboutUs = () => {
         { src: video3, cover: cover3, title: "Theyy Wearr's Kebaya Kutu Baru Collection", date: "2024-01-12" },
         { src: video4, cover: cover4, title: "Elevate Your Look with Our Signature Bags", date: "2024-01-11" }
     ];
+
+    interface CartItem {
+        id: number;
+        product_id: number;
+        product_name: string;
+        product_image: string | null;
+        color: string;
+        color_code: string;
+        price: string;
+        quantity: number;
+    }
+
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
+    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+    const userId = searchParams.user_id;
+
+    const navigateWithUserId = (path: string) => {
+        const id = currentUserId() || userId;
+        if (id) {
+            navigate(`${path}?user_id=${id}`);
+            updateUserActivity(id);
+        } else {
+            navigate(path);
+        }
+    };
+
+    const updateUserActivity = async (userId: string) => {
+        try {
+            await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+        } catch (error) {
+            console.error('Failed to update activity:', error);
+        }
+    };
 
     const [clicked, setClicked] = createSignal(false);
 
@@ -56,10 +94,10 @@ const AboutUs = () => {
                 </div>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/products">Products</a></li>
-                        <li><a href="/about-us" class="active">About Us</a></li>
-                        <li><a href="/blogpage">Blog</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} >Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/about-us")} class="active">About Us</a></li>
+                        <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
                 </nav>
                 <div class="dash-auth-buttons">

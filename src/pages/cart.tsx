@@ -220,7 +220,7 @@ export default function CartPage() {
                 <nav class="navbar">
                     <ul>
                         <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
-                        <li><a onClick={() => navigateWithUserId("/products")} class="active">Products</a></li>
+                        <li><a onClick={() => navigateWithUserId("/products")} >Products</a></li>
                         <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
                         <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
                     </ul>
