@@ -9,6 +9,7 @@ import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import accountIcon from '../img/UserCircle (2).svg';
 import './clothes.css';
+import profile from '../img/UserCircle (2).svg';
 
 interface ProductColor {
     color: string;
@@ -39,7 +40,35 @@ const Clothes = () => {
     const [isLoading, setIsLoading] = createSignal(false);
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const [searchQuery, setSearchQuery] = createSignal("");
+    const accountIcon = profile;
     const navigate = useNavigate();
+
+    const updateUserActivity = () => {
+        if (!userId) return;
+    
+        fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch(console.error);
+      };
+
+    const fetchUserProfile = async () => {
+        if (!userId) return;
+    
+        try {
+          const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.img) {
+              setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+        }
+      };
 
     const [favoriteCount, setFavoriteCount] = createSignal(0);
     const [clicked, setClicked] = createSignal(false);

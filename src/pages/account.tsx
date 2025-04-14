@@ -25,6 +25,7 @@ const Account: Component = () => {
     });
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const [onlineUsers, setOnlineUsers] = createSignal([]);
+    const accountIcon = profile;
 
     const [searchParams] = useSearchParams();
     const userId = searchParams.user_id;
@@ -47,6 +48,22 @@ const Account: Component = () => {
             },
         }).catch(console.error);
     };
+
+    const fetchUserProfile = async () => {
+        if (!userId) return;
+    
+        try {
+          const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.img) {
+              setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+        }
+      };
 
     const [clicked, setClicked] = createSignal(false);
 

@@ -11,6 +11,7 @@ import logowhite from '../img/logowhite.png';
 import befooter from '../img/befooter.png';
 import translate from '../img/Translate.svg';
 import accountIcon from '../img/UserCircle (2).svg'
+import profile from '../img/UserCircle (2).svg';
 
 const PowerAccessories4: Component = () => {
   const [activePage, setActivePage] = createSignal(4); // Misalnya, halaman aktif saat ini adalah 2
@@ -41,6 +42,11 @@ const PowerAccessories4: Component = () => {
     }
   };
 
+
+  const [profileImage, setProfileImage] = createSignal<string | null>(null);
+  const [onlineUsers, setOnlineUsers] = createSignal([]);
+  const accountIcon = profile;
+
   const updateUserActivity = async (userId: string) => {
     try {
       await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
@@ -51,6 +57,22 @@ const PowerAccessories4: Component = () => {
       console.error('Failed to update activity:', error);
     }
   };
+
+  const fetchUserProfile = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.img) {
+          setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   // Data halaman dan path-nya
   const pages = [
@@ -141,9 +163,22 @@ const PowerAccessories4: Component = () => {
             <img src={cartIcon} alt="Cart" />
           </button>
           {/* Tombol Account dengan Navigasi */}
-          <button class="dash-account-btn" onClick={goToAccount}>
-            <img src={accountIcon} alt="Account" />
-          </button>
+          <div class="dash-account-btn" onClick={goToAccount}>
+            <img
+              src={profileImage() || accountIcon}
+              alt="Account"
+              style={{
+                width: '32px',
+                height: '32px',
+                "border-radius": '50%',
+                "object-fit": 'cover',
+                "border": '2px solid ' + (onlineUsers().some(u => u.id === userId) ? '#4CAF50' : '#ccc')
+              }}
+            />
+            {onlineUsers().some(u => u.id === userId) && (
+              <div class="online-status-dot"></div>
+            )}
+          </div>
         </div>
       </header>
       {/* Hero Section */}

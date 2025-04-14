@@ -13,6 +13,8 @@ import translate from '../img/Translate.svg';
 import befooter from '../img/befooter.png';
 import cartIcon from '../img/Tote.svg';
 import edit from '../img/edit.svg';
+import profile from '../img/UserCircle (2).svg';
+
 
 interface Address {
     id: number;
@@ -51,6 +53,8 @@ const Address: Component = () => {
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const [onlineUsers, setOnlineUsers] = createSignal([]);
     const [isLoading, setIsLoading] = createSignal(false);
+    const accountIcon = profile;
+
 
     const updateUserActivity = () => {
         if (!userId()) return;

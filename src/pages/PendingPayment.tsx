@@ -11,6 +11,7 @@ import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
 import logoqris from '../img/logoqris.png';
 import qrcode from '../img/qris.jpg';
+import profile from '../img/UserCircle (2).svg';
 
 interface OrderData {
     id: number;
@@ -53,6 +54,8 @@ const PendingPaymentPage = () => {
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const [cartCount, setCartCount] = createSignal(0);
     const [favoriteCount, setFavoriteCount] = createSignal(0);
+    const [onlineUsers, setOnlineUsers] = createSignal<{ id: string }[]>([]);
+      const accountIcon = profile;
 
     const fetchOrderData = async () => {
         try {
@@ -84,6 +87,17 @@ const PendingPaymentPage = () => {
             console.error('Error fetching profile:', error);
         }
     };
+
+    const updateUserActivity = () => {
+        if (!userId) return;
+    
+        fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch(console.error);
+      };
 
     const fetchCartCount = async () => {
         if (!userId) return;

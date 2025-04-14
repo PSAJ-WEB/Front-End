@@ -13,6 +13,8 @@ import { formatPrice } from "../pages/formatprice";
 import { useLocation, useParams } from "@solidjs/router";
 import translate from '../img/Translate.svg';
 import logoqris from '../img/logoqris.png';
+import profile from '../img/UserCircle (2).svg';
+
 
 interface Address {
     id: number;
@@ -88,6 +90,8 @@ const CheckoutPage = () => {
     const [notes, setNotes] = createSignal('');
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string | null>(null);
+    const [onlineUsers, setOnlineUsers] = createSignal([]);
+       const accountIcon = profile;
     // const [clicked, setClicked] = createSignal(false);
 
     // const goToFavoritePage = () => {
@@ -430,18 +434,22 @@ const CheckoutPage = () => {
                     </button>
 
                     {/* Tombol Account */}
-                    <button class="dash-account-btn" onClick={goToAccount}>
-                        <img
-                            src={profileImage() || accountIcon}
-                            alt="Account"
-                            style={{
-                                width: '32px',
-                                height: '32px',
-                                "border-radius": '50%',
-                                "object-fit": 'cover'
-                            }}
-                        />
-                    </button>
+                    <div class="dash-account-btn" onClick={goToAccount}>
+            <img
+              src={profileImage() || accountIcon}
+              alt="Account"
+              style={{
+                width: '32px',
+                height: '32px',
+                "border-radius": '50%',
+                "object-fit": 'cover',
+                "border": '2px solid ' + (onlineUsers().some(u => u.id === userId) ? '#4CAF50' : '#ccc')
+              }}
+            />
+            {onlineUsers().some(u => u.id === userId) && (
+              <div class="online-status-dot"></div>
+            )}
+          </div>
                 </div>
             </header>
 

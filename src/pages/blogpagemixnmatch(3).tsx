@@ -1,5 +1,5 @@
 import { Component, onMount, createSignal } from 'solid-js';
-import { useNavigate, useSearchParams} from "@solidjs/router";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 import { useLocation } from "@solidjs/router";
 import heart from '../img/Heart.svg';
@@ -10,7 +10,9 @@ import cartIcon from '../img/Tote.svg';
 import logowhite from '../img/logowhite.png';
 import befooter from '../img/befooter.png';
 import translate from '../img/Translate.svg';
-import accountIcon from '../img/UserCircle (2).svg'
+import accountIcon from '../img/UserCircle (2).svg';
+import profile from '../img/UserCircle (2).svg';
+
 
 const BlogPageMixnMatch3: Component = () => {
   const [activePage, setActivePage] = createSignal(3); // Misalnya, halaman aktif saat ini adalah 2
@@ -29,7 +31,27 @@ const BlogPageMixnMatch3: Component = () => {
   const [searchParams] = useSearchParams();
   const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
   const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
+  const [profileImage, setProfileImage] = createSignal<string | null>(null);
   const userId = searchParams.user_id;
+  const [onlineUsers, setOnlineUsers] = createSignal([]);
+  const accountIcon = profile;
+
+
+  const fetchUserProfile = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.img) {
+          setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const navigateWithUserId = (path: string) => {
     const id = currentUserId() || userId;
@@ -123,7 +145,7 @@ const BlogPageMixnMatch3: Component = () => {
         </div>
         <nav class="navbar-blog">
           <ul>
-          <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+            <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
             <li><a onClick={() => navigateWithUserId("/products")} >Products</a></li>
             <li><a onClick={() => navigateWithUserId("/about-us")} >About Us</a></li>
             <li><a onClick={() => navigateWithUserId("/blogpage")} class="active">Blog</a></li>
@@ -140,9 +162,22 @@ const BlogPageMixnMatch3: Component = () => {
             <img src={cartIcon} alt="Cart" />
           </button>
           {/* Tombol Account dengan Navigasi */}
-          <button class="dash-account-btn" onClick={goToAccount}>
-            <img src={accountIcon} alt="Account" />
-          </button>
+          <div class="dash-account-btn" onClick={goToAccount}>
+            <img
+              src={profileImage() || accountIcon}
+              alt="Account"
+              style={{
+                width: '32px',
+                height: '32px',
+                "border-radius": '50%',
+                "object-fit": 'cover',
+                "border": '2px solid ' + (onlineUsers().some(u => u.id === userId) ? '#4CAF50' : '#ccc')
+              }}
+            />
+            {onlineUsers().some(u => u.id === userId) && (
+              <div class="online-status-dot"></div>
+            )}
+          </div>
         </div>
       </header>
       {/* Hero Section */}

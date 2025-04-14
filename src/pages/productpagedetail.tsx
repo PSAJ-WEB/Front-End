@@ -10,6 +10,7 @@ import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
 import befooter from '../img/befooter.png';
 import "./productpagedetail.css";
+import profile from '../img/UserCircle (2).svg';
 
 
 interface ProductDetail {
@@ -49,6 +50,7 @@ const ProductPageDetail = () => {
     const [quantity, setQuantity] = createSignal(1);
     const [isLoading, setIsLoading] = createSignal(false);
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
+    const accountIcon = profile;
 
     // Tambahkan state untuk notifikasi
     const [showNotification, setShowNotification] = createSignal(false);
@@ -96,7 +98,7 @@ const ProductPageDetail = () => {
                     quantity: quantity()
                 })
             });
-            const data = await response.json(); 
+            const data = await response.json();
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -213,6 +215,17 @@ const ProductPageDetail = () => {
         } catch (error) {
             console.error('Error fetching profile:', error);
         }
+    };
+
+    const updateUserActivity = () => {
+        if (!userId) return;
+
+        fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).catch(console.error);
     };
 
     const getColorCode = (colorName: string) => {
@@ -362,17 +375,17 @@ const ProductPageDetail = () => {
         if (!priceString) return "Rp 0";
         // Jika sudah dalam format IDR, langsung return
         if (priceString.includes("IDR") || priceString.includes("Rp")) return priceString;
-        
+
         // Coba parse number
         const priceNum = parseFloat(priceString.replace(/[^0-9.]/g, ''));
         if (isNaN(priceNum)) return priceString;
-        
+
         return new Intl.NumberFormat('id-ID', {
-          style: 'currency',
-          currency: 'IDR',
-          maximumFractionDigits: 0
+            style: 'currency',
+            currency: 'IDR',
+            maximumFractionDigits: 0
         }).format(priceNum);
-      };
+    };
     return (
         <div class="product-page">
             <Show when={showNotification()}>

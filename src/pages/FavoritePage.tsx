@@ -8,6 +8,7 @@ import accountIcon from '../img/UserCircle (2).svg';
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
 import translate from '../img/Translate.svg';
+import profile from '../img/UserCircle (2).svg';
 
 interface Product {
     id: number;
@@ -29,6 +30,8 @@ export default function FavoritesPage() {
     const [profileImage, setProfileImage] = createSignal<string | null>(null);
     const [scrollToId, setScrollToId] = createSignal<number | null>(null);
     const [totalFavorites, setTotalFavorites] = createSignal(0);
+    const [onlineUsers, setOnlineUsers] = createSignal([]);
+    const accountIcon = profile;
 
     // Format image URL
     const formatImageUrl = (imagePath: string | null) => {
@@ -57,6 +60,17 @@ export default function FavoritesPage() {
             console.error("Error fetching user profile:", err);
         }
     };
+
+    const updateUserActivity = () => {
+        if (!userId) return;
+    
+        fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch(console.error);
+      };
 
     // Fetch favorite products
     const fetchFavoriteProducts = async (search = "") => {
@@ -126,7 +140,7 @@ export default function FavoritesPage() {
         }
     };
 
-    
+
     // Handle search with debounce
     let searchTimeout: number;
     const handleSearch = (query: string) => {
@@ -219,7 +233,7 @@ export default function FavoritesPage() {
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
                     </button>
-                    <button class="dash-account-btn" onClick={goToAccount}>
+                    <div class="dash-account-btn" onClick={goToAccount}>
                         <img
                             src={profileImage() || accountIcon}
                             alt="Account"
@@ -227,10 +241,14 @@ export default function FavoritesPage() {
                                 width: '32px',
                                 height: '32px',
                                 "border-radius": '50%',
-                                "object-fit": 'cover'
+                                "object-fit": 'cover',
+                                "border": '2px solid ' + (onlineUsers().some(u => u.id === userId) ? '#4CAF50' : '#ccc')
                             }}
                         />
-                    </button>
+                        {onlineUsers().some(u => u.id === userId) && (
+                            <div class="online-status-dot"></div>
+                        )}
+                    </div>
                 </div>
             </header>
 

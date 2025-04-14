@@ -366,18 +366,22 @@ export default function CartPage() {
                             <span class="cart-badge">{cartCount()}</span>
                         )}
                     </button>
-                    <button class="dash-account-btn" onClick={goToAccount}>
-                        <img
-                            src={profileImage() || accountIcon}
-                            alt="Account"
-                            style={{
-                                width: '32px',
-                                height: '32px',
-                                "border-radius": '50%',
-                                "object-fit": 'cover'
-                            }}
-                        />
-                    </button>
+                    <div class="dash-account-btn" onClick={goToAccount}>
+            <img
+              src={profileImage() || accountIcon}
+              alt="Account"
+              style={{
+                width: '32px',
+                height: '32px',
+                "border-radius": '50%',
+                "object-fit": 'cover',
+                "border": '2px solid ' + (onlineUsers().some(u => u.id === userId) ? '#4CAF50' : '#ccc')
+              }}
+            />
+            {onlineUsers().some(u => u.id === userId) && (
+              <div class="online-status-dot"></div>
+            )}
+          </div>
                 </div>
             </header>
 

@@ -96,6 +96,23 @@ export default function History() {
             navigate(`/history/empty?user_id=${userId}`);
         }
     });
+
+    const fetchUserProfile = async () => {
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.img) {
+                    setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    };
+
     const updateUserActivity = () => {
         if (!userId) return;
 
@@ -114,7 +131,7 @@ export default function History() {
                 </div>
                 <nav class="navbar">
                     <ul>
-                    <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
                         <li><a onClick={() => navigateWithUserId("/products")}>Products</a></li>
                         <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
                         <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
