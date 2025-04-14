@@ -45,7 +45,7 @@
   flex-direction: column;
   width: 600px;
   margin-top: 80px;
-  margin-left: -420px;
+  margin-left: 10px;
 }
 .cart-items {
   display: flex;
@@ -302,10 +302,10 @@
 
 
 .total-orders {
+  margin-left: 600px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-left: 0; /* Remove negative margin */
 }
 
 .total-orders span:first-child {
@@ -319,7 +319,7 @@
 }
 
 .checkout-button {
-  margin-left: 900px;
+  margin-left: 1500px;
   background-color: #000;
   color: #fff;
   padding: 12px 24px;

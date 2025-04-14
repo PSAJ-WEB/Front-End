@@ -38,8 +38,8 @@ const Accessories = () => {
         });
         setProducts(updatedProducts);
     };
-        const [products, setProducts] = createSignal<Product[]>([]);
-    
+    const [products, setProducts] = createSignal<Product[]>([]);
+
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
@@ -62,18 +62,18 @@ const Accessories = () => {
             ? imagePath
             : `http://127.0.0.1:8080/uploads/products/${imagePath}`;
     };
-     onMount(async () => {
-            const activeUserId = currentUserId() || userId || null;
-            if (activeUserId) {
-                setCurrentUserId(activeUserId);
-                const userResponse = await fetch(`http://127.0.0.1:8080/user/${activeUserId}`);
-                if (userResponse.ok) {
-                    const userData = await userResponse.json();
-                    setProfileImage(userData.img ? `http://127.0.0.1:8080/uploads/${userData.img}` : null);
-                }
-            }
-            await fetchProducts();
-        });
+    onMount(async () => {
+        const activeUserId = currentUserId() || userId || null;
+        if (activeUserId) {
+            setCurrentUserId(activeUserId);
+            const userResponse = await fetch(`http://127.0.0.1:8080/user/${activeUserId}`);
+            if (userResponse.ok) {
+                const userData = await userResponse.json();
+                setProfileImage(userData.img ? `http://127.0.0.1:8080/uploads/${userData.img}` : null);
+            }   
+        }
+        await fetchProducts();
+    });
     const fetchProducts = async () => {
         try {
             setIsLoading(true);
@@ -196,13 +196,13 @@ const Accessories = () => {
     // const [searchQuery, setSearchQuery] = createSignal("");
     const goToProductDetail = (productId: number) => {
         if (userId) {
-          navigate(`/products/detail/${productId}?user_id=${userId}`);
+            navigate(`/products/detail/${productId}?user_id=${userId}`);
         } else {
-          navigate(`/products/detail/${productId}`);
+            navigate(`/products/detail/${productId}`);
         }
         // Scroll ke atas halaman
         window.scrollTo(0, 0);
-      };
+    };
     //   const [searchParams] = useSearchParams();
     //   const userId = searchParams.user_id;
     //   const [clicked, setClicked] = createSignal(false);

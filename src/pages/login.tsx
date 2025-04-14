@@ -20,32 +20,40 @@ const LoginPage = () => {
   };
 
   // Di LoginPage.tsx
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
       const response = await fetch('http://127.0.0.1:8080/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-              email: formData().email,
-              password: formData().password,
-          }),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData().email,
+          password: formData().password,
+        }),
       });
   
       const data = await response.json();
   
       if (response.ok) {
-          // Navigasi ke dashboard dengan ID user sebagai parameter
+        // Simpan data user ke localStorage/sessionStorage
+        localStorage.setItem('user', JSON.stringify(data));
+        
+        // Navigasi berdasarkan role
+        if (data.role === 'admin') {
+          navigate('/admin');
+        } else {
           navigate(`/dashboard?user_id=${data.id}`);
+        }
       } else {
-          setErrorMessage(data.message || "Login gagal!");
+        setErrorMessage(data.message || "Login gagal!");
       }
-  } catch (error) {
+    } catch (error) {
       console.error('Error saat login:', error);
       setErrorMessage("Terjadi kesalahan saat menghubungi server.");
-  }
-};
+    }
+  };
+  
   return (
     <div class={styles.loginPageContainer}>
       <div class={styles.loginImageSection}>

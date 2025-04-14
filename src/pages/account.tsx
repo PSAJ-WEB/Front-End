@@ -34,6 +34,7 @@ const Account: Component = () => {
         navigate(`${path}?user_id=${userId}`);
         updateUserActivity();
     };
+    
 
     // Function to update user activity
     const updateUserActivity = () => {

@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, createEffect, Show } from 'solid-js';
 import styles from './PendingPayment.module.css';
 import heart from '../img/Heart.svg';
 import heartfull from '../img/Heart (1).svg';
@@ -8,11 +8,36 @@ import accountIcon from '../img/UserCircle (2).svg';
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import logo from '../img/logo.png';
 import logowhite from '../img/logowhite.png';
-import { createEffect, onCleanup } from "solid-js";
-import { useLocation, useSearchParams } from "@solidjs/router";
 import translate from '../img/Translate.svg';
 import logoqris from '../img/logoqris.png';
 import qrcode from '../img/qris.jpg';
+
+interface OrderData {
+    id: number;
+    order_date: string;
+    status: string;
+    total_amount: string;
+    subtotal: string;
+    delivery_fee: string;
+    address?: {
+        recipient_name: string;
+        phone_number: string;
+        address: string;
+        zip_code: string;
+        address_type: string;
+    };
+    notes?: string;
+}
+
+interface CartItem {
+    id: number;
+    product_name: string;
+    product_image: string | null;
+    color: string;
+    color_code: string;
+    quantity: number;
+    price: string;
+}
 
 const PendingPaymentPage = () => {
     const [searchParams] = useSearchParams();
@@ -20,113 +45,108 @@ const PendingPaymentPage = () => {
     const userId = searchParams.user_id;
     const navigate = useNavigate();
 
-<<<<<<< HEAD
-    const [orderData, setOrderData] = createSignal(null);
+    const [orderData, setOrderData] = createSignal<OrderData | null>(null);
     const [loading, setLoading] = createSignal(true);
-    const [error, setError] = createSignal(null);
+    const [error, setError] = createSignal<string | null>(null);
     const [notes, setNotes] = createSignal('');
-=======
-    interface CartItem {
-        id: number;
-        product_id: number;
-        product_name: string;
-        product_image: string | null;
-        color: string;
-        color_code: string;
-        price: string;
-        quantity: number;
-      }
-    
-      const [searchParams] = useSearchParams();
-      const [cartItems, setCartItems] = createSignal<CartItem[]>([]);
-      const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
-      const userId = searchParams.user_id;
-    
-      const navigateWithUserId = (path: string) => {
-        const id = currentUserId() || userId;
-        if (id) {
-          navigate(`${path}?user_id=${id}`);
-          updateUserActivity(id);
-        } else {
-          navigate(path);
-        }
-      };
-    
-      const updateUserActivity = async (userId: string) => {
-        try {
-          await fetch(`http://127.0.0.1:8080/user/${userId}/activity`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-          });
-        } catch (error) {
-          console.error('Failed to update activity:', error);
-        }
-      };
-
     const [clicked, setClicked] = createSignal(false);
->>>>>>> 2e6c0d4f7f2116fcd00181a81d1656cc8a7cc5fa
+    const [profileImage, setProfileImage] = createSignal<string | null>(null);
+    const [cartCount, setCartCount] = createSignal(0);
+    const [favoriteCount, setFavoriteCount] = createSignal(0);
 
-    // Fetch order data on component mount
-    createEffect(async () => {
+    const fetchOrderData = async () => {
         try {
             const response = await fetch(`http://127.0.0.1:8080/user/${userId}/order/${orderId}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch order details');
-            }
+            if (!response.ok) throw new Error('Failed to fetch order details');
             const data = await response.json();
-            setOrderData(data);
+            console.log('Fetched order data:', data); // Logging data
+            setOrderData(data.order);
             setNotes(data.notes || '');
-            setLoading(false);
         } catch (err) {
             setError(err.message);
+            console.error('Error fetching order data:', err);
+        } finally {
             setLoading(false);
         }
-    });
+    };
 
-    // Handle notes update
+    const fetchUserProfile = async () => {
+        if (!userId) return;
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.img) {
+                    setProfileImage(`http://127.0.0.1:8080/uploads/${data.img}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    };
+
+    const fetchCartCount = async () => {
+        if (!userId) return;
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/cart/count`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            setCartCount(data.count || 0);
+        } catch (error) {
+            console.error('Error fetching cart count:', error);
+        }
+    };
+
+    const fetchFavoriteCount = async () => {
+        if (!userId) return;
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/user/${userId}/likes`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            setFavoriteCount(data.length || 0);
+        } catch (error) {
+            console.error('Error fetching favorite count:', error);
+        }
+    };
+
     const handleNotesUpdate = async () => {
         try {
             const response = await fetch(
                 `http://127.0.0.1:8080/user/${userId}/order/${orderId}/notes`,
                 {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ notes: notes() }),
                 }
             );
-
-            if (!response.ok) {
-                throw new Error('Failed to update notes');
-            }
-            // Show success message
+            if (!response.ok) throw new Error('Failed to update notes');
+            console.log('Notes updated successfully');
         } catch (err) {
             console.error('Error updating notes:', err);
         }
     };
-    const navigateWithUserId = (path: string) => {
-        const id = currentUserId() || userId;
-        if (id) {
-            navigate(`${path}?user_id=${id}`);
-        } else {
-            navigate(path);
+
+    createEffect(async () => {
+        if (!orderId || !userId) {
+            navigate("/");
+            return;
         }
-    };
-    const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
 
+        await Promise.all([
+            fetchOrderData(),
+            fetchUserProfile(),
+            fetchCartCount(),
+            fetchFavoriteCount()
+        ]);
+    });
 
-    if (loading()) return <div>Loading...</div>;
-    if (error()) return <div>Error: {error()}</div>;
-    if (!orderData()) return <div>No order data found</div>;
-
-    const goToCart = () => navigateWithUserId("/cart");
-    const goToAccount = () => navigateWithUserId("/account");
+    const goToCart = () => navigate(`/cart?user_id=${userId}`);
+    const goToAccount = () => navigate(`/account?user_id=${userId}`);
     const goToFavoritePage = () => {
         setClicked(true);
-        navigateWithUserId("/favorite");
+        navigate(`/favorite?user_id=${userId}`);
     };
-    const [clicked, setClicked] = createSignal(false);
+    const navigateWithUserId = (path: string) => navigate(`${path}?user_id=${userId}`);
 
     return (
         <div class={styles.Container}>
@@ -137,7 +157,7 @@ const PendingPaymentPage = () => {
                 </div>
                 <nav class="navbar-blog">
                     <ul>
-                    <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
+                        <li><a onClick={() => navigateWithUserId("/dashboard")}>Home</a></li>
                         <li><a onClick={() => navigateWithUserId("/products")}>Products</a></li>
                         <li><a onClick={() => navigateWithUserId("/about-us")}>About Us</a></li>
                         <li><a onClick={() => navigateWithUserId("/blogpage")}>Blog</a></li>
@@ -145,17 +165,24 @@ const PendingPaymentPage = () => {
                 </nav>
                 <div class="dash-auth-buttons">
                     <button class="fav" onClick={goToFavoritePage}>
-                        <img
-                            src={clicked() ? heartfull : heart}
-                            alt="heart"
-                        />
+                        <img src={clicked() ? heartfull : heart} alt="heart" />
+                        {favoriteCount() > 0 && <span class="favorites-badge">{favoriteCount()}</span>}
                     </button>
                     <button class="dash-cart-btn" onClick={goToCart}>
                         <img src={cartIcon} alt="Cart" />
+                        {cartCount() > 0 && <span class="cart-badge">{cartCount()}</span>}
                     </button>
-                    {/* Tombol Account dengan Navigasi */}
                     <button class="dash-account-btn" onClick={goToAccount}>
-                        <img src={accountIcon} alt="Account" />
+                        <img
+                            src={profileImage() || accountIcon}
+                            alt="Account"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                "border-radius": '50%',
+                                "object-fit": 'cover'
+                            }}
+                        />
                     </button>
                 </div>
             </header>
@@ -163,77 +190,90 @@ const PendingPaymentPage = () => {
             <main class={styles.main}>
                 <h1 class={styles.title}>Checkout</h1>
 
-                <div class={styles.contentLayout}>
-                    <div class={styles.leftContent}>
-                        <section class={styles.section}>
-                            <h2 class={styles.sectionTitle}>Address</h2>
-                            <div class={styles.addressCard}>
-                                {orderData().address ? (
-                                <div class={styles.addressDetails}>
-                                    <p class={styles.addressName}>
-                                        {orderData().address.recipient_name} - {orderData().address.address_type}
-                                    </p>
-                                    <p class={styles.addressPhone}>{orderData().address.phone_number}</p>
-                                    <p class={styles.addressStreet}>{orderData().address.address}</p>
-                                    <p class={styles.addressPostal}>{orderData().address.zip_code}</p>
-                                </div>
-                                ) :(
-                                <p>No address selected</p>
-                                )}
-                                <button class={styles.changeAddressBtn}>Change Address</button>
+                <Show when={!loading()} fallback={<div>Loading...</div>}>
+                    <Show when={orderData()} fallback={<div>No order data found</div>}>
+                        <div class={styles.contentLayout}>
+                            <div class={styles.leftContent}>
+                                <section class={styles.section}>
+                                    <h2 class={styles.sectionTitle}>Address</h2>
+                                    <div class={styles.addressCard}>
+                                        <Show when={orderData()?.address} fallback={<p>No address selected</p>}>
+                                            <div class={styles.addressDetails}>
+                                                <p class={styles.addressName}>
+                                                    {orderData()?.address?.recipient_name} - {orderData()?.address?.address_type}
+                                                </p>
+                                                <p class={styles.addressPhone}>{orderData()?.address?.phone_number}</p>
+                                                <p class={styles.addressStreet}>{orderData()?.address?.address}</p>
+                                                <p class={styles.addressPostal}>{orderData()?.address?.zip_code}</p>
+                                            </div>
+                                        </Show>
+                                        <button 
+                                            class={styles.changeAddressBtn}
+                                            onClick={() => navigate(`/user/${userId}/addresses`)}
+                                        >
+                                            Change Address
+                                        </button>
+                                    </div>
+                                </section>
+
+                                <section class={styles.section}>
+                                    <div class={styles.paymentMethodHeader}>
+                                        <h2 class={styles.sectionTitle}>Payment Method</h2>
+                                        <img src={logoqris} alt="QRIS" class={styles.paymentLogo} />
+                                    </div>
+                                </section>
+
+                                <section class={styles.section}>
+                                    <h2 class={styles.sectionTitle}>Order Summary</h2>
+                                    <div class={styles.orderSummary}>
+                                        <div class={styles.orderItem}>
+                                            <span>Subtotal</span>
+                                            <span>IDR {orderData()?.subtotal}</span>
+                                        </div>
+                                        <div class={styles.orderItem}>
+                                            <span>Delivery</span>
+                                            <span>IDR {orderData()?.delivery_fee}</span>
+                                        </div>
+                                        <div class={`${styles.orderItem} ${styles.orderTotal}`}>
+                                            <span>Total</span>
+                                            <span>IDR {orderData()?.total_amount}</span>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section class={styles.section}>
+                                    <h2 class={styles.sectionTitle}>Notes</h2>
+                                    <textarea
+                                        class={styles.notesTextarea}
+                                        value={notes()}
+                                        onInput={(e) => setNotes(e.currentTarget.value)}
+                                        onBlur={handleNotesUpdate}
+                                    />
+                                </section>
+
+                                <button class={styles.pendingPaymentButton}>
+                                    Pending Payment
+                                </button>
                             </div>
-                        </section>
 
-                        <section class={styles.section}>
-                            <div class={styles.paymentMethodHeader}>
-                                <h2 class={styles.sectionTitle}>Payment Method</h2>
-                                <img src={logoqris} alt="QRIS" class={styles.paymentLogo} />
+                            <div class={styles.rightContent}>
+                                <section class={styles.qrisSection}>
+                                    <h2 class={styles.sectionTitle}>QRIS</h2>
+                                    <div class={styles.qrisCard}>
+                                        <img 
+                                            src={`http://127.0.0.1:8080${qrcode}`} 
+                                            alt="QRIS QR Code" 
+                                            class={styles.qrCode} 
+                                        />
+                                    </div>
+                                </section>
                             </div>
-                        </section>
+                        </div>
+                    </Show>
+                </Show>
+            </main>
 
-                        <section class={styles.section}>
-                            <h2 class={styles.sectionTitle}>Order Summary</h2>
-                            <div class={styles.orderSummary}>
-                                <div class={styles.orderItem}>
-                                    <span>Subtotal</span>
-                                    <span>{orderData().subtotal} IDR</span>
-                                </div>
-                                <div class={styles.orderItem}>
-                                    <span>Delivery</span>
-                                    <span>{orderData().delivery_fee} IDR</span>
-                                </div>
-                                <div class={`${styles.orderItem} ${styles.orderTotal}`}>
-                                    <span>Total</span>
-                                    <span>{orderData().total_amount} IDR</span>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section class={styles.section}>
-                            <h2 class={styles.sectionTitle}>Notes</h2>
-                            <textarea
-                                class={styles.notesTextarea}
-                                value={notes()}
-                                onInput={(e) => setNotes(e.target.value)}
-                                onBlur={handleNotesUpdate}
-                            />
-                        </section>
-
-                        <button class={styles.pendingPaymentButton}>
-                            Pending Payment
-                        </button>
-                    </div>
-
-                    <div class={styles.rightContent}>
-                        <section class={styles.qrisSection}>
-                            <h2 class={styles.sectionTitle}>QRIS</h2>
-                            <div class={styles.qrisCard}>
-                                <img src={qrcode} alt="QRIS QR Code" class={styles.qrCode} />
-                            </div>
-                        </section>
-                    </div>
-                </div>
-            </main><img src={befooter} alt="Banner" class="full-width-image" />
+            <img src={befooter} alt="Banner" class="full-width-image" />
 
             {/* Footer */}
             <footer>
@@ -297,7 +337,6 @@ const PendingPaymentPage = () => {
                         <span>English</span>
                     </div>
                 </div>
-
             </footer>
         </div>
     );

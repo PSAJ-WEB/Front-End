@@ -127,7 +127,7 @@ const ProductPage = () => {
     if (userId) {
       fetchUserProfile();
       fetchOnlineUsers();
-      fetchFavoriteCount();
+      awaitFetchFavoriteCount();
       updateUserActivity();
 
       // Dapatkan produk yang sudah dilike oleh user
@@ -435,7 +435,7 @@ const ProductPage = () => {
           } : product
         )
       );
-      fetchFavoriteCount();
+      await fetchFavoriteCount();
       setFavoriteCount(prev => data.is_liked ? prev + 1 : Math.max(0, prev - 1));
     } catch (error) {
       console.error("Error toggling like:", error);
@@ -493,16 +493,16 @@ const ProductPage = () => {
           </ul>
         </nav>
         <div class="dash-auth-buttons">
-          <div class="favorites-indicator" onClick={goToFavoritePage}>
-            <img
-              src={clicked() ? heartfull : heart}
-              alt="heart"
-              class="favorites-icon"
-            />
-            <Show when={totalFavorites() > 0}>
-              <span class="favorites-badge">{totalFavorites()}</span>
-            </Show>
-          </div>
+        <div class="favorites-indicator" onClick={goToFavoritePage}>
+  <img
+    src={clicked() ? heartfull : heart}
+    alt="heart"
+    class="favorites-icon"
+  />
+  <Show when={totalFavorites() > 0}>
+    <span class="favorites-badge">{totalFavorites()}</span>
+  </Show>
+</div>
           <button class="dash-cart-btn" onClick={goToCart}>
             <img src={cartIcon} alt="Cart" />
           </button>
